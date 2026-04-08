@@ -1,25 +1,28 @@
 import { describe, expect, it } from "vitest";
-
 import { evaluatePlannerDecision } from "./planner";
 
 describe("evaluatePlannerDecision", () => {
-  it("returns low confidence for empty prompt", () => {
-    const decision = evaluatePlannerDecision("");
-    expect(decision.flow).toBe("lowConfidence");
-    expect(decision.confidenceScore).toBeLessThan(80);
-  });
-
-  it("returns failure for stale high risk prompt", () => {
-    const decision = evaluatePlannerDecision("high risk stale schedule");
-    expect(decision.flow).toBe("failure");
-    expect(decision.needsPlanBFallback).toBe(true);
-  });
-
-  it("returns happy path for specific clear prompt", () => {
-    const decision = evaluatePlannerDecision(
+  it("returns happy flow for clear intent", () => {
+    const result = evaluatePlannerDecision(
       "len lich hk xuan 2026 tranh sang va co giai tich 2",
     );
-    expect(decision.flow).toBe("happy");
-    expect(decision.confidenceScore).toBeGreaterThanOrEqual(80);
+    expect(result.flow).toBe("happy");
+    expect(result.confidenceScore).toBeGreaterThanOrEqual(80);
+    expect(result.citations.length).toBeGreaterThan(0);
+  });
+
+  it("returns lowConfidence for vague input", () => {
+    const result = evaluatePlannerDecision("help");
+    expect(result.flow).toBe("lowConfidence");
+    expect(result.confidenceScore).toBeLessThan(80);
+    expect(result.reasons.length).toBeGreaterThan(0);
+    expect(result.reasons[0].citationIds.length).toBeGreaterThan(0);
+  });
+
+  it("returns failure for stale / high-risk input", () => {
+    const result = evaluatePlannerDecision("high risk stale near full");
+    expect(result.flow).toBe("failure");
+    expect(result.needsPlanBFallback).toBe(true);
+    expect(result.citations.length).toBeGreaterThan(0);
   });
 });

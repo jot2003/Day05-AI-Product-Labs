@@ -1,81 +1,53 @@
 "use client";
 
-import { ConfidenceMeter, MetricsPanel } from "@/components/vinagent-ui";
-import { StepWizard } from "@/components/step-wizard";
+import { cn } from "@/lib/cn";
 import { FadeIn, Stagger, StaggerItem } from "@/components/motion";
-import { useVinAgent } from "@/lib/store";
 
-const METRICS = [
-  {
-    label: "Độ chính xác xếp lịch",
-    value: "89%",
-    target: "> 85%",
-    status: "good" as const,
-  },
-  {
-    label: "Tỷ lệ chỉnh sửa thủ công",
-    value: "22%",
-    target: "< 25%",
-    status: "good" as const,
-  },
-  {
-    label: "Tỷ lệ kích hoạt Plan B",
-    value: "17%",
-    target: "< 15%",
-    status: "warning" as const,
-  },
-  {
-    label: "Số cờ đỏ đang mở",
-    value: "1",
-    target: "0",
-    status: "warning" as const,
-  },
+type MetricItem = {
+  label: string;
+  value: string;
+  target: string;
+  status: "good" | "warning" | "danger";
+};
+
+const METRICS: MetricItem[] = [
+  { label: "Độ chính xác xếp lịch", value: "89%", target: "> 85%", status: "good" },
+  { label: "Tỷ lệ chỉnh sửa thủ công", value: "22%", target: "< 25%", status: "good" },
+  { label: "Tỷ lệ kích hoạt Plan B", value: "17%", target: "< 15%", status: "warning" },
+  { label: "Số cờ đỏ đang mở", value: "1", target: "0", status: "warning" },
+  { label: "Thời gian đăng ký trung bình", value: "6 phút", target: "< 8 phút", status: "good" },
+  { label: "Tín hiệu do dự thu thập", value: "127", target: "> 500/kỳ", status: "danger" },
 ];
 
-const INSIGHTS = [
-  { icon: "📈", text: "Độ chính xác tăng 3% so với tuần trước nhờ cập nhật dữ liệu SIS." },
-  { icon: "⚡", text: "Plan B activation giảm nếu triển khai push notification seat alert." },
-  { icon: "🔍", text: "Cần theo dõi thêm edit rate trong 48h tới." },
-];
+const statusColors = {
+  good: "border-success/30 bg-success/5 text-success",
+  warning: "border-warning/30 bg-warning/5 text-warning",
+  danger: "border-accent/30 bg-accent/5 text-accent",
+};
+
+const statusLabels = { good: "Đạt", warning: "Theo dõi", danger: "Cờ đỏ" };
 
 export default function MetricsPage() {
-  const store = useVinAgent();
-
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 md:px-8">
+    <div className="mx-auto w-full max-w-5xl px-4 py-8 md:px-8">
       <FadeIn>
-        <StepWizard />
-      </FadeIn>
-
-      <FadeIn delay={0.08}>
-        <header className="gradient-hero relative overflow-hidden rounded-3xl border p-6 md:p-8">
-          <div className="pointer-events-none absolute -right-10 top-0 h-40 w-40 rounded-full bg-success/15 blur-3xl" />
-          <div className="relative z-10">
-            <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
-              Bảng chỉ số vận hành
-            </h1>
-            <p className="mt-2 text-sm text-muted">
-              Theo dõi sức khỏe hệ thống và red flags theo ngưỡng deploy.
-            </p>
-          </div>
+        <header className="mb-8">
+          <h1 className="text-2xl font-bold tracking-tight">Bảng chỉ số vận hành</h1>
+          <p className="mt-1 text-sm text-muted">Theo dõi sức khỏe hệ thống theo ngưỡng triển khai.</p>
         </header>
       </FadeIn>
 
-      <FadeIn delay={0.15}>
-        <ConfidenceMeter score={store.confidenceScore} />
-      </FadeIn>
-
-      <FadeIn delay={0.2}>
-        <MetricsPanel metrics={METRICS} />
-      </FadeIn>
-
-      <Stagger className="grid gap-3 md:grid-cols-3">
-        {INSIGHTS.map((insight) => (
-          <StaggerItem key={insight.text}>
-            <div className="card-glass rounded-2xl border p-5 transition-all hover:-translate-y-0.5">
-              <span className="text-xl">{insight.icon}</span>
-              <p className="mt-2 text-sm leading-relaxed text-muted">{insight.text}</p>
-            </div>
+      <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {METRICS.map((m) => (
+          <StaggerItem key={m.label}>
+            <article className="rounded-xl border bg-white p-5 transition-all hover:-translate-y-0.5 hover:shadow-md">
+              <p className="text-xs font-medium text-muted">{m.label}</p>
+              <p className="mt-2 text-2xl font-bold tracking-tight">{m.value}</p>
+              <p className="mt-1 text-[11px] text-muted">Mục tiêu: {m.target}</p>
+              <span className={cn("mt-3 inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-semibold", statusColors[m.status])}>
+                {statusLabels[m.status]}
+              </span>
+            </article>
           </StaggerItem>
         ))}
       </Stagger>

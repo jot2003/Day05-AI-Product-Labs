@@ -1,9 +1,27 @@
 import { create } from "zustand";
 
-import type { ConfidenceLevel } from "@/components/vinagent-ui";
-import { evaluatePlannerDecision, type PlannerDecision } from "@/lib/planner";
+import type { Citation } from "./citations";
+import { evaluatePlannerDecision, type PlannerDecision, type ReasonWithCitation } from "./planner";
 
-type FlowState = "idle" | "happy" | "lowConfidence" | "failure" | "recovery" | "escalated";
+export type FlowState = "idle" | "happy" | "lowConfidence" | "failure" | "recovery" | "escalated";
+export type ConfidenceLevel = "high" | "medium" | "low";
+
+export type ChatMessage = {
+  id: string;
+  role: "user" | "assistant";
+  text: string;
+  citationIds?: number[];
+  timestamp: Date;
+};
+
+export type CourseSlot = {
+  code: string;
+  name: string;
+  day: "Mon" | "Tue" | "Wed" | "Thu" | "Fri";
+  startHour: number;
+  endHour: number;
+  room?: string;
+};
 
 interface VinAgentState {
   prompt: string;
@@ -14,12 +32,17 @@ interface VinAgentState {
   confidenceScore: number;
   autoActionEnabled: boolean;
   redFlags: string[];
-  reasons: string[];
+  reasons: ReasonWithCitation[];
+  citations: Citation[];
   toast: { title: string; message: string } | null;
   lastDecision: PlannerDecision | null;
+  messages: ChatMessage[];
+  currentView: "calendar" | "list";
+  isTyping: boolean;
 
   setPrompt: (prompt: string) => void;
   setToast: (toast: { title: string; message: string } | null) => void;
+  setCurrentView: (view: "calendar" | "list") => void;
   generate: (inputPrompt: string) => void;
   acceptPlan: (plan: "A" | "B") => void;
   toggleEdit: () => void;
@@ -27,9 +50,27 @@ interface VinAgentState {
   acknowledgeFlags: () => void;
   toggleAutoAction: () => void;
   clarify: (choice: "avoidMorning" | "keepGroup") => void;
-
   confidenceLevel: () => ConfidenceLevel;
 }
+
+let msgCounter = 0;
+function makeId() {
+  return `msg-${++msgCounter}-${Date.now()}`;
+}
+
+export const PLAN_A_COURSES: CourseSlot[] = [
+  { code: "CECS101", name: "Giải tích 2", day: "Mon", startHour: 9, endHour: 10.5, room: "P.301" },
+  { code: "CECS101", name: "Giải tích 2", day: "Wed", startHour: 9, endHour: 10.5, room: "P.301" },
+  { code: "CECS203", name: "Cấu trúc dữ liệu", day: "Tue", startHour: 13, endHour: 14.5, room: "P.205" },
+  { code: "CECS204", name: "Thực hành OOP", day: "Thu", startHour: 15, endHour: 17, room: "Lab A" },
+];
+
+export const PLAN_B_COURSES: CourseSlot[] = [
+  { code: "CECS101", name: "Giải tích 2", day: "Mon", startHour: 14, endHour: 15.5, room: "P.302" },
+  { code: "CECS101", name: "Giải tích 2", day: "Wed", startHour: 14, endHour: 15.5, room: "P.302" },
+  { code: "CECS203", name: "Cấu trúc dữ liệu", day: "Tue", startHour: 15, endHour: 16.5, room: "P.206" },
+  { code: "CECS204", name: "Thực hành OOP", day: "Fri", startHour: 9, endHour: 11, room: "Lab B" },
+];
 
 export const useVinAgent = create<VinAgentState>((set, get) => ({
   prompt: "",
@@ -40,65 +81,74 @@ export const useVinAgent = create<VinAgentState>((set, get) => ({
   confidenceScore: 100,
   autoActionEnabled: false,
   redFlags: [],
-  reasons: [
-    "Nhập yêu cầu để hệ thống tạo kế hoạch theo đúng ưu tiên cá nhân.",
-  ],
+  reasons: [],
+  citations: [],
   toast: null,
   lastDecision: null,
+  messages: [],
+  currentView: "calendar",
+  isTyping: false,
 
   setPrompt: (prompt) => set({ prompt }),
   setToast: (toast) => set({ toast }),
+  setCurrentView: (view) => set({ currentView: view }),
 
   generate: (inputPrompt) => {
+    const userMsg: ChatMessage = { id: makeId(), role: "user", text: inputPrompt, timestamp: new Date() };
+    set((s) => ({ messages: [...s.messages, userMsg], isTyping: true }));
+
     const decision = evaluatePlannerDecision(inputPrompt);
     const flags: string[] = [];
-    if (!decision.toolSnapshot.dataFresh) flags.push("Dữ liệu SIS đã cũ (>5 phút), cần làm mới.");
-    if (decision.confidenceScore < 70) flags.push("Độ tin cậy dưới 70, chưa đủ auto-action.");
+    if (!decision.toolSnapshot.dataFresh) flags.push("Dữ liệu SIS đã cũ (vượt quá 5 phút), cần làm mới.");
+    if (decision.confidenceScore < 70) flags.push("Độ tin cậy dưới 70, chưa đủ điều kiện tự động hành động.");
     if (decision.toolSnapshot.seatRisk === "high") flags.push("Rủi ro hết chỗ cao, ưu tiên Plan B.");
 
-    const reasons = [
-      ...decision.reasons,
-      `Nguồn: ${decision.toolSnapshot.sourceTimestamp}, dữ liệu ${decision.toolSnapshot.dataFresh ? "mới" : "cũ"}.`,
-    ];
-
-    const base = {
-      confidenceScore: decision.confidenceScore,
-      redFlags: flags,
-      reasons,
-      lastDecision: decision,
-      autoActionEnabled: false,
-    };
+    let assistantText: string;
+    let flow: FlowState;
 
     if (decision.flow === "failure") {
-      set({
-        ...base,
-        flow: "failure",
-        usePlanB: decision.needsPlanBFallback,
-        toast: { title: "Kịch bản rủi ro cao", message: "Plan A có thể thất bại. Plan B đã sẵn sàng." },
-      });
-      return;
+      flow = "failure";
+      assistantText = `Đã phân tích yêu cầu của bạn. Phát hiện một số rủi ro cần lưu ý:\n\n` +
+        decision.reasons.map((r) => `• ${r.text} [${r.citationIds.join(",")}]`).join("\n") +
+        `\n\nĐiểm tin cậy: ${decision.confidenceScore}/100. Plan B đã sẵn sàng để chuyển đổi.`;
+    } else if (decision.flow === "lowConfidence") {
+      flow = "lowConfidence";
+      assistantText = `Đã nhận yêu cầu, nhưng cần làm rõ thêm:\n\n` +
+        decision.reasons.map((r) => `• ${r.text} [${r.citationIds.join(",")}]`).join("\n") +
+        `\n\nVui lòng bổ sung thông tin để hệ thống tạo kế hoạch chính xác hơn.`;
+    } else {
+      flow = "happy";
+      assistantText = `Đã tạo kế hoạch đăng ký học phần thành công!\n\n` +
+        decision.reasons.map((r) => `• ${r.text} [${r.citationIds.join(",")}]`).join("\n") +
+        `\n\nĐiểm tin cậy: ${decision.confidenceScore}/100. Bạn có thể xem lịch học bên phải và xác nhận phương án.`;
     }
-    if (decision.flow === "lowConfidence") {
+
+    const allCitIds = decision.citations.map((c) => c.id);
+    const assistantMsg: ChatMessage = { id: makeId(), role: "assistant", text: assistantText, citationIds: allCitIds, timestamp: new Date() };
+
+    setTimeout(() => {
       set({
-        ...base,
-        flow: "lowConfidence",
+        messages: [...get().messages, assistantMsg],
+        isTyping: false,
+        flow,
+        confidenceScore: decision.confidenceScore,
+        redFlags: flags,
+        reasons: decision.reasons,
+        citations: decision.citations,
+        lastDecision: decision,
         usePlanB: decision.needsPlanBFallback,
-        toast: { title: "Phát hiện độ tin cậy thấp", message: "Cần xác nhận thêm ưu tiên." },
+        autoActionEnabled: false,
+        toast: null,
       });
-      return;
-    }
-    set({
-      ...base,
-      flow: "happy",
-      usePlanB: decision.needsPlanBFallback,
-      toast: { title: "Đã tạo kế hoạch", message: `Điểm tin cậy: ${decision.confidenceScore}/100.` },
-    });
+    }, 600);
   },
 
   acceptPlan: (plan) => {
-    const { flow } = get();
+    const { flow, messages } = get();
     if (flow === "failure" && plan === "A") {
+      const msg: ChatMessage = { id: makeId(), role: "assistant", text: "Plan A có rủi ro cao, hệ thống đã tự động chuyển sang Plan B để đảm bảo an toàn.", timestamp: new Date() };
       set({
+        messages: [...messages, msg],
         selectedPlan: "B",
         usePlanB: true,
         flow: "recovery",
@@ -106,7 +156,9 @@ export const useVinAgent = create<VinAgentState>((set, get) => ({
       });
       return;
     }
+    const msg: ChatMessage = { id: makeId(), role: "assistant", text: `Đã xác nhận Plan ${plan}. Bạn có thể tiến hành đăng ký.`, timestamp: new Date() };
     set({
+      messages: [...messages, msg],
       selectedPlan: plan,
       flow: "happy",
       toast: { title: "Sẵn sàng đăng ký", message: `Bạn đã chọn Plan ${plan}.` },
@@ -115,18 +167,22 @@ export const useVinAgent = create<VinAgentState>((set, get) => ({
 
   toggleEdit: () => set((s) => ({
     isEdited: !s.isEdited,
-    toast: { title: "Đã cập nhật kế hoạch", message: "Đã thêm khoảng nghỉ vào lịch." },
+    toast: { title: "Đã cập nhật", message: "Đã chỉnh sửa kế hoạch." },
   })),
 
-  escalate: () => set({
-    flow: "escalated",
-    toast: { title: "Đã chuyển cố vấn", message: "Advisor brief đã tạo kèm bối cảnh phiên." },
-  }),
+  escalate: () => {
+    const msg: ChatMessage = { id: makeId(), role: "assistant", text: "Đã tạo bản tóm tắt (Advisor Brief) và chuyển cho cố vấn học vụ. Cố vấn sẽ liên hệ bạn trong vòng 24 giờ.", timestamp: new Date() };
+    set((s) => ({
+      messages: [...s.messages, msg],
+      flow: "escalated",
+      toast: { title: "Đã chuyển cố vấn học vụ", message: "Advisor Brief đã tạo kèm bối cảnh phiên." },
+    }));
+  },
 
   acknowledgeFlags: () => set({
     redFlags: [],
     confidenceScore: 88,
-    toast: { title: "Đã xử lý cảnh báo", message: "Cờ đỏ đã xóa, confidence đã cập nhật." },
+    toast: { title: "Đã xử lý cảnh báo", message: "Cờ đỏ đã xóa, độ tin cậy đã cập nhật." },
   }),
 
   toggleAutoAction: () => {
@@ -142,13 +198,15 @@ export const useVinAgent = create<VinAgentState>((set, get) => ({
     });
   },
 
-  clarify: (choice) => set({
-    flow: "happy",
-    toast: {
-      title: "Đã ghi nhận",
-      message: choice === "avoidMorning" ? "Ưu tiên lớp sau 9h00." : "Ưu tiên giữ lịch cùng nhóm.",
-    },
-  }),
+  clarify: (choice) => {
+    const text = choice === "avoidMorning" ? "Đã ghi nhận: ưu tiên các lớp sau 9 giờ sáng." : "Đã ghi nhận: ưu tiên giữ lịch học cùng nhóm bạn.";
+    const msg: ChatMessage = { id: makeId(), role: "assistant", text, timestamp: new Date() };
+    set((s) => ({
+      messages: [...s.messages, msg],
+      flow: "happy",
+      toast: { title: "Đã ghi nhận ưu tiên", message: text },
+    }));
+  },
 
   confidenceLevel: () => {
     const { flow } = get();
