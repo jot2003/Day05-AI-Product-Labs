@@ -1,16 +1,20 @@
 # Bài tập UX — Vietnam Airlines Chatbot NEO
 
-**Học viên:** [Điền họ tên]  
-**Mã học viên:** [Điền mã]  
-**Sản phẩm:** Vietnam Airlines — Trợ lý ảo NEO (chatbot)  
-**Kênh test:** [Web / Zalo / kênh bạn đã dùng]  
+**Học viên:** [Điền họ tên] — **Mã học viên:** [Điền mã]  
+**Sản phẩm (theo đề `01-ux-exercise.md`):** Vietnam Airlines — Chatbot NEO  
+**Truy cập:** vietnamairlines.com hoặc Zalo VNA  
+**Kênh cụ thể mình test:** [Web / Zalo / …]  
 **Ngày test:** [DD/MM/2026]
+
+> **Checklist nộp LMS (đúng template `README.md`):** `MaHocVien-HoTen-Day05.zip` → `canhan/ux-exercise/sketch.jpg` (hoặc `.pdf`) **+** `canhan/ux-exercise/analysis.md`. *(Screenshot: nice-to-have — có thể để trong cùng thư mục hoặc kèm `Neo_image/`.)*
 
 ---
 
-## 1. Marketing promise (trước khi dùng)
+## 1. Phần 1 — Khám phá (trước khi dùng & khi dùng)
 
-Theo trang giới thiệu, NEO được định vị là trợ lý hỗ trợ nhanh các chủ đề như **tra cứu chuyến bay / vé / giá vé / hành lý / hoàn đổi / check-in**, và khi không giải đáp được thì **chuyển hướng gặp tư vấn viên**. Kỳ vọng phổ biến từ tên gọi “trợ lý” là **hiểu ngữ cảnh** (ví dụ mã chuyến bay) và **giảm số vòng chat**.
+**Marketing / sản phẩm hứa gì:** NEO được giới thiệu là **trợ lý ảo** hỗ trợ nhanh **tra cứu chuyến bay / vé / giá / hành lý / mua vé / hoàn đổi / check-in**; khi không trả lời được thì **chuyển tư vấn viên**. Gợi ý dùng **câu hỏi ngắn, rõ**, có thể tra theo **mục có sẵn**.
+
+**Khi dùng thử:** mở chat, quan sát phản hồi **dạng tin nhắn**, bot đưa **khối nội dung** (bảng hành lý, nhắc mã đặt chỗ), **không thấy** UI thay đổi phức tạp (chủ yếu là luồng hội thoại). Chi tiết phiên test: transcript mục 2 bên dưới.
 
 ---
 
@@ -49,6 +53,17 @@ Theo trang giới thiệu, NEO được định vị là trợ lý hỗ trợ nh
 
 ## 3. Phân tích 4 paths
 
+**Framework 4 paths (theo `01-ux-exercise.md`):**
+
+| Path | Câu hỏi (đề gốc) |
+|------|------------------|
+| 1. AI **đúng** | User thấy gì? Hệ thống confirm thế nào? |
+| 2. AI **không chắc** | Im lặng? Hỏi lại? Show alternatives? |
+| 3. AI **sai** | User biết sai bằng cách nào? Sửa bao nhiêu bước? |
+| 4. User **mất tin** | Có exit? Fallback (người / manual)? Dễ tìm? |
+
+**Áp vào phiên chat:**
+
 | Path | Ý nghĩa | Quan sát từ đoạn chat | Nhận xét |
 |------|---------|------------------------|----------|
 | **1. AI đúng** | Trả lời đúng trọng tâm, user xong việc | Bot đưa bảng hành lý nội địa theo hạng; sau khi user nói **Phổ thông**, bot chốt **1 kiện ký gửi 23kg** | **Điểm mạnh:** thông tin “tier” cơ bản rõ. **Hạn chế:** user hỏi gắn **chuyến VN205** nhưng lần đầu trả lời kiểu **bảng chung**, chưa nói rõ đây là quy định chung hay đã khớp điều kiện vé/chuyến cụ thể. |
@@ -56,7 +71,10 @@ Theo trang giới thiệu, NEO được định vị là trợ lý hỗ trợ nh
 | **3. Sai / failure** | Sai fact, hoặc “trả lời như đã chốt” dù thiếu điều kiện; khó recover | User hỏi theo **VN205**; bot đáp bằng **khung nội địa theo hạng** mà chưa chốt route/điều kiện vé của case đó | Theo góc **product failure** (không cần chứng minh sai từng kg): risk là user **áp nhận nhầm** nếu thực tế có ngoại lệ theo fare/rule. **Recover** hạn chế vì không bắt được tín hiệu “mã chuyến” từ vn205. |
 | **4. Mất tin** | User nghi ngờ; cần verify / human / exit rõ | User nói thẳng **“Không đúng với thông tin trên website”** | Trong đoạn chat **chưa thấy** bước **verify nhanh** (link điều khoản hành lý, checklist 3 thông tin bắt buộc) hay **nút “Gặp tư vấn viên”** nổi bật ngay sau câu mất tin — user vẫn ở vòng “xin thêm thông tin” chung. |
 
-**Path yếu nhất:** **Path 2** (kết hợp rủi ro **Path 3**) — bot **có ý định làm rõ** nhưng **thiếu kỹ thuật / thiết kế luồng** để hiểu **VN205** và tránh **lặp template**, trong khi câu trả lời đầu dễ **lệch ngữ cảnh** so với câu hỏi “theo chuyến”.
+**Tự phân tích (theo `01-ux-exercise.md`):**
+
+- **Path mạnh nhất:** **Path 1** khi câu hỏi khớp **FAQ chuẩn** (bảng hành lý theo hạng; sau khi nói **Phổ thông** thì chốt **23kg**) — nội dung **có cấu trúc**, có **gợi ý bước tiếp** (mã đặt chỗ / số vé).
+- **Path yếu nhất:** **Path 2** (kết hợp rủi ro **Path 3**) — có **xin thêm thông tin** nhưng **không hiểu vn205**, **lặp template**; lời đáp đầu dễ **lệch ngữ cảnh** với câu hỏi **theo chuyến**.
 
 ---
 
@@ -86,9 +104,15 @@ Theo trang giới thiệu, NEO được định vị là trợ lý hỗ trợ nh
 4. Nếu user nói “không đúng website”: hiện ngay **Link chính sách hành lý** + **Gặp tư vấn viên** + checklist 3 mục cần có  
 5. Trả lời chốt theo điều kiện **hoặc** đã chuyển người → **(+) xong việc**
 
+**Phần 3 đề bài — Thêm / bớt / đổi (trên sketch giấy):**
+
+- **Thêm:** nhánh **Chung vs Theo vé**; bước **nhận diện mã chuyến** + xin **ngày bay / mã đặt chỗ**; **link chính sách** + **gặp tư vấn viên** ngay khi user báo sai so với web.
+- **Bớt:** vòng **lặp** cùng một khối “xin hạng + hành trình” khi user đã cố đưa **VN205**.
+- **Đổi:** từ **trả lời khung chung ngay** sang **nói rõ đây là quy định chung** (nếu chưa có vé) hoặc **đi thẳng tra theo vé**.
+
 ---
 
-## 6. Kết luận ngắn (30 giây khi trình bày nhóm)
+## 6. Kết luận ngắn (30 giây khi trình bày nhóm — Phần 4 đề bài)
 
 NEO xử lý tốt kiểu **câu hỏi tier chuẩn**, nhưng với câu hỏi **gắn mã chuyến**, luồng dễ **lệch ngữ cảnh** rồi **lặp kịch bản** khi user cố cung cấp **VN205**. Cải tiến cốt lõi: **phân nhánh chung vs theo vé**, **parse / giải thích mã chuyến**, và **verify + human handoff** ngay khi user mất tin.
 
