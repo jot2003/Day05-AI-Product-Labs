@@ -3,8 +3,8 @@
 ## 0) Setup trước demo (30-60s)
 - Mở app ở `vinagent-web`.
 - Đăng nhập bằng 1 trong 2 tài khoản demo:
-  - `20210001` / password `1` (Nguyen Van An)
-  - `20210042` / password `1` (Duc)
+  - `20210001` / password `1` (Nguyễn Văn An)
+  - `20210042` / password `1` (Đức)
 - Vào trang tạo kế hoạch.
 
 ## 1) Problem -> Solution fit (1 phút)

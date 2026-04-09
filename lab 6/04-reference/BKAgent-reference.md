@@ -1,12 +1,12 @@
 # BKAgent Reference Snapshot
 
-Tong hop nhanh tinh trang du an de doi chieu khi lam SPEC/Prototype/Demo.
+Tổng hợp nhanh tình trạng dự án để đối chiếu khi làm SPEC/Prototype/Demo.
 
 ## Product scope
 
 - Domain: HUST course registration planning.
-- In scope: phan tich yeu cau, kiem tien quyet, check lich/slot, tao Plan A/B.
-- Out of scope: xu ly ha tang dk-sis (timeout/latency he thong truong).
+- In scope: phân tích yêu cầu, kiểm tiên quyết, check lịch/slot, tạo Plan A/B.
+- Out of scope: xử lý hạ tầng dk-sis (timeout/latency hệ thống trường).
 
 ## Architecture
 
@@ -18,13 +18,13 @@ Tong hop nhanh tinh trang du an de doi chieu khi lam SPEC/Prototype/Demo.
 ## Demo-critical features
 
 1. Plan A/B + confidence per plan
-2. Citation + nguon du lieu
-3. Group invite mot chieu
+2. Citation + nguồn dữ liệu
+3. Group invite một chiều
 4. Session theo user
-5. Follow-up suggestions sau moi cau tra loi
+5. Follow-up suggestions sau mỗi câu trả lời
 
 ## Current known limits
 
-- Du lieu la mock, chua dong bo SIS production.
-- Chat luong plan phu thuoc do day du cua `schedule.json`.
-- Can feedback form day du theo zone de tranh tru diem ca nhan.
+- Dữ liệu là mock, chưa đồng bộ SIS production.
+- Chất lượng plan phụ thuộc độ đầy đủ của `schedule.json`.
+- Cần feedback form đầy đủ theo zone để tránh trừ điểm cá nhân.
