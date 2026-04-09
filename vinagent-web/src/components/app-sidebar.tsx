@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { Home, CalendarPlus, BarChart3, Plus, MessageSquare, Trash2, History } from "lucide-react";
+import { Home, CalendarPlus, BarChart3, User, Plus, MessageSquare, Trash2, History } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useState, useSyncExternalStore } from "react";
 
@@ -26,6 +26,7 @@ const NAV_ITEMS = [
   { href: "/", label: "Trang chủ", icon: Home },
   { href: "/tao-ke-hoach", label: "Tạo kế hoạch", icon: CalendarPlus },
   { href: "/chi-so", label: "Bảng chỉ số", icon: BarChart3 },
+  { href: "/nguoi-dung", label: "Hồ sơ người dùng", icon: User },
 ];
 
 export function AppSidebar() {
