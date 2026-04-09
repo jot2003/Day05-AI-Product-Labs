@@ -78,7 +78,7 @@ function ConfidenceBar({
                 render={
                   <button
                     type="button"
-                    className="inline-flex items-center gap-1 text-sm font-bold text-white/95 hover:text-white transition-colors"
+                    className="inline-flex items-center gap-1 text-base font-bold text-white/95 hover:text-white transition-colors"
                   >
                     Độ tin cậy từng plan
                     <CircleHelp className="size-3.5 opacity-80" />
@@ -90,12 +90,6 @@ function ConfidenceBar({
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          <p className="text-xs text-white/80 mt-0.5">
-            60%: lớp còn nhiều chỗ • 25%: lịch trong tuần đỡ dồn • 15%: môn được chia đều giữa các ngày.
-          </p>
-          <p className="text-[11px] text-white/70 mt-0.5">
-            Điểm được giữ trong khoảng 35-99, điểm càng cao thì plan càng ổn.
-          </p>
         </div>
         <div className="text-right">
           <p className="font-mono text-base font-bold text-white">
