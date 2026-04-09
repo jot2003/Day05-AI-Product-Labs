@@ -1,4 +1,4 @@
-import { ChatGoogle } from "@langchain/google";
+import { ChatOpenAI } from "@langchain/openai";
 import {
   StateGraph,
   MessagesAnnotation,
@@ -116,12 +116,12 @@ function shouldContinue(
 }
 
 function buildGraph() {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error("GEMINI_API_KEY not configured");
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error("OPENAI_API_KEY not configured");
 
-  const model = new ChatGoogle({
+  const model = new ChatOpenAI({
     apiKey,
-    model: process.env.DEFAULT_MODEL || "gemini-2.5-flash",
+    model: process.env.DEFAULT_MODEL || "gpt-4o-mini",
     temperature: 0,
   }).bindTools(allTools);
 

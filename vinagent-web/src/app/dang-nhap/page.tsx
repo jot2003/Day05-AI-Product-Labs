@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 export default function LoginPage() {
   const router = useRouter();
   const [studentId, setStudentId] = useState("");
-  const [studentName, setStudentName] = useState("");
+  const [password, setPassword] = useState("");
   const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -21,7 +21,7 @@ export default function LoginPage() {
     setLoading(true);
     setStatus(null);
     await new Promise((r) => setTimeout(r, 400));
-    const result = loginAccount(studentId, studentName);
+    const result = loginAccount(studentId, password);
     setStatus(result);
     setLoading(false);
     if (result.ok) {
@@ -70,7 +70,7 @@ export default function LoginPage() {
 
           <h2 className="text-2xl font-bold text-foreground mb-1">Đăng nhập</h2>
           <p className="text-sm text-muted-foreground mb-8">
-            Sử dụng mã sinh viên và họ tên từ hệ thống HUST
+            Sử dụng mã sinh viên và mật khẩu để đăng nhập
           </p>
 
           <form className="space-y-4" onSubmit={onSubmit}>
@@ -90,17 +90,18 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="student-name" className="text-sm font-medium text-foreground">
-                Họ và tên
+              <label htmlFor="password" className="text-sm font-medium text-foreground">
+                Mật khẩu
               </label>
               <Input
-                id="student-name"
-                value={studentName}
-                onChange={(e) => setStudentName(e.target.value)}
-                placeholder="VD: Nguyễn Văn An"
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Nhập mật khẩu"
                 required
                 className="h-11 text-sm"
-                autoComplete="name"
+                autoComplete="current-password"
               />
             </div>
 
@@ -134,7 +135,7 @@ export default function LoginPage() {
           </div>
 
           <p className="mt-8 text-center text-xs text-muted-foreground/60">
-            Tài khoản được đồng bộ từ hệ thống HUST. Thông tin chỉ lưu trên thiết bị của bạn.
+            Mật khẩu demo hiện tại: 123456. Thông tin chỉ lưu trên thiết bị của bạn.
           </p>
         </div>
       </div>

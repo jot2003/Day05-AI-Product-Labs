@@ -4,6 +4,7 @@
 } from "@/lib/student-data";
 
 const SESSION_KEY = "bkagent.currentUser";
+const FIXED_PASSWORD = "123456";
 
 export type AuthResult = {
   ok: boolean;
@@ -18,21 +19,12 @@ export function getStudentById(studentId: string): StudentProfile | null {
   return getStudentByIdFromData(studentId);
 }
 
-function normalizeName(name: string): string {
-  return name
-    .trim()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ")
-    .toLowerCase();
-}
-
-export function loginAccount(studentId: string, studentName: string): AuthResult {
+export function loginAccount(studentId: string, password: string): AuthResult {
   const normalizedId = studentId.trim();
-  const normalizedName = normalizeName(studentName);
+  const normalizedPassword = password.trim();
 
-  if (!normalizedId || !normalizedName) {
-    return { ok: false, message: "Vui lòng nhập đầy đủ mã sinh viên và họ tên." };
+  if (!normalizedId || !normalizedPassword) {
+    return { ok: false, message: "Vui lòng nhập đầy đủ mã sinh viên và mật khẩu." };
   }
 
   const student = getStudentById(normalizedId);
@@ -40,8 +32,8 @@ export function loginAccount(studentId: string, studentName: string): AuthResult
     return { ok: false, message: "Mã sinh viên không tồn tại trong hệ thống HUST." };
   }
 
-  if (normalizeName(student.name) !== normalizedName) {
-    return { ok: false, message: "Họ tên không khớp với mã sinh viên. Vui lòng kiểm tra lại." };
+  if (normalizedPassword !== FIXED_PASSWORD) {
+    return { ok: false, message: "Mật khẩu không đúng. Vui lòng thử lại." };
   }
 
   if (isBrowser()) {

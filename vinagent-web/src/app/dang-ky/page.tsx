@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 export default function RegisterPage() {
   const router = useRouter();
   const [studentId, setStudentId] = useState("");
-  const [studentName, setStudentName] = useState("");
+  const [password, setPassword] = useState("");
   const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -22,7 +22,7 @@ export default function RegisterPage() {
     setStatus(null);
     await new Promise((r) => setTimeout(r, 400));
     // Auth is verified against HUST database (student.json) — same flow as login
-    const result = loginAccount(studentId, studentName);
+    const result = loginAccount(studentId, password);
     if (result.ok) {
       setStatus({ ok: true, message: "Xác thực thành công! Tài khoản đã sẵn sàng." });
       setLoading(false);
@@ -51,7 +51,7 @@ export default function RegisterPage() {
             <p className="text-sm font-semibold text-white mb-2">Lưu ý</p>
             <ul className="space-y-1.5 text-sm text-white/80">
               <li className="flex gap-2"><span>•</span><span>Mã sinh viên phải đúng format HUST</span></li>
-              <li className="flex gap-2"><span>•</span><span>Họ tên phải khớp với hồ sơ sinh viên</span></li>
+              <li className="flex gap-2"><span>•</span><span>Mật khẩu demo mặc định: 123456</span></li>
               <li className="flex gap-2"><span>•</span><span>Thông tin không gửi lên server</span></li>
             </ul>
           </div>
@@ -69,7 +69,7 @@ export default function RegisterPage() {
 
           <h2 className="text-2xl font-bold text-foreground mb-1">Xác thực tài khoản</h2>
           <p className="text-sm text-muted-foreground mb-8">
-            Tài khoản được tạo tự động từ dữ liệu HUST. Nhập thông tin để xác thực.
+            Tài khoản được tạo tự động từ dữ liệu HUST. Nhập mã sinh viên và mật khẩu để xác thực.
           </p>
 
           <form className="space-y-4" onSubmit={onSubmit}>
@@ -88,16 +88,18 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="reg-student-name" className="text-sm font-medium text-foreground">
-                Họ và tên đầy đủ
+              <label htmlFor="reg-password" className="text-sm font-medium text-foreground">
+                Mật khẩu
               </label>
               <Input
-                id="reg-student-name"
-                value={studentName}
-                onChange={(e) => setStudentName(e.target.value)}
-                placeholder="VD: Nguyễn Văn An"
+                id="reg-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Nhập mật khẩu"
                 required
                 className="h-11 text-sm"
+                autoComplete="new-password"
               />
             </div>
 
