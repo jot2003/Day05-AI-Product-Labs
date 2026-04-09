@@ -208,33 +208,48 @@ export const useBKAgent = create<BKAgentState>()(
               const jsonStr = line.slice(6).trim();
               if (!jsonStr) continue;
 
+              let event: Record<string, unknown>;
               try {
-                const event = JSON.parse(jsonStr);
+                event = JSON.parse(jsonStr) as Record<string, unknown>;
+              } catch {
+                continue; // skip malformed JSON only
+              }
 
-                if (event.type === "tool_start") {
-                  const step: AgentStep = {
-                    id: makeStepId(),
-                    type: "tool_start",
-                    tool: event.tool,
-                    label: event.label,
-                    timestamp: new Date(),
+              // Error event — break out and let the outer catch handle it
+              if (event.type === "error") {
+                throw new Error((event.message as string) ?? "Agent error");
+              }
+
+              if (event.type === "tool_start") {
+                const step: AgentStep = {
+                  id: makeStepId(),
+                  type: "tool_start",
+                  tool: event.tool as string,
+                  label: event.label as string,
+                  timestamp: new Date(),
+                };
+                set((s) => ({ streamingSteps: [...s.streamingSteps, step] }));
+              }
+
+              if (event.type === "tool_end") {
+                set((s) => ({
+                  streamingSteps: s.streamingSteps.map((step) =>
+                    step.tool === (event.tool as string) && step.type === "tool_start"
+                      ? { ...step, type: "tool_end" as const, label: event.label as string }
+                      : step
+                  ),
+                }));
+              }
+
+              if (event.type === "done") {
+                  type DoneEvent = {
+                    text: string; citations: Citation[]; confidenceScore: number;
+                    flow: "happy" | "lowConfidence" | "failure";
+                    planA: { code: string; name: string; day: string; startHour: number; endHour: number; room: string }[] | null;
+                    planB: { code: string; name: string; day: string; startHour: number; endHour: number; room: string }[] | null;
+                    suggestions?: string[];
                   };
-                  set((s) => ({ streamingSteps: [...s.streamingSteps, step] }));
-                }
-
-                if (event.type === "tool_end") {
-                  // Update matching tool_start to tool_end
-                  set((s) => ({
-                    streamingSteps: s.streamingSteps.map((step) =>
-                      step.tool === event.tool && step.type === "tool_start"
-                        ? { ...step, type: "tool_end" as const, label: event.label }
-                        : step
-                    ),
-                  }));
-                }
-
-                if (event.type === "done") {
-                  const data = event;
+                  const data = event as unknown as DoneEvent;
                   const flags: string[] = [];
                   if (data.confidenceScore < 70)
                     flags.push("Độ tin cậy dưới 70, chưa đủ điều kiện tự động hành động.");
@@ -312,15 +327,11 @@ export const useBKAgent = create<BKAgentState>()(
                     };
                   });
                 }
-
-                if (event.type === "error") {
-                  throw new Error(event.message);
-                }
-              } catch {
-                // skip malformed events
-              }
             }
           }
+
+          // Stream ended without a done event — ensure loading is cleared
+          set((s) => s.isTyping ? { isTyping: false, streamingSteps: [] } : {});
         } catch (error) {
           const errorMsg =
             error instanceof Error ? error.message : "Lỗi không xác định";
