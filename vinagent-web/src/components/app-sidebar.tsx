@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Home, CalendarPlus, BarChart3, Moon, Sun } from "lucide-react";
+import { Home, CalendarPlus, BarChart3 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
@@ -37,9 +38,13 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" variant="sidebar">
       <SidebarHeader className="p-3">
         <Link href="/" className="flex items-center gap-2 px-1">
-          <div className="flex size-7 items-center justify-center rounded-md bg-foreground text-background text-xs font-bold">
-            VA
-          </div>
+          <Image
+            src="/hust-logo.svg"
+            alt="HUST"
+            width={28}
+            height={28}
+            className="shrink-0"
+          />
           <span className="text-sm font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
             BKAgent
           </span>

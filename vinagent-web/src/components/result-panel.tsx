@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { AlertTriangle, Pencil, UserRound } from "lucide-react";
+import { useEffect, useState } from "react";
+import { AlertTriangle, Pencil, UserRound, ChevronDown, ChevronUp, Users, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useBKAgent } from "@/lib/store";
@@ -14,6 +14,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { AdvisorBriefSheet } from "./advisor-brief-sheet";
+import { EditPlanSheet } from "./edit-plan-sheet";
+import { RegisterDialog } from "./register-dialog";
+import { GroupInviteSheet } from "./group-invite-sheet";
 
 function ConfidenceBar({ score }: { score: number }) {
   const label = score >= 80 ? "An toàn" : score >= 60 ? "Cần kiểm tra" : "Rủi ro";
@@ -93,6 +98,41 @@ function PlanListView({ courses, plan }: { courses: { code: string; name: string
   );
 }
 
+function ReasoningPanel({ reasons, citations }: { reasons: { text: string; citationIds: number[] }[]; citations: import("@/lib/citations").Citation[] }) {
+  const [open, setOpen] = useState(false);
+  if (reasons.length === 0) return null;
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md px-1 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+        <span className="font-medium">Lý luận AI ({reasons.length} bước)</span>
+        {open ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="mt-1 space-y-2 rounded-md border border-border/40 bg-muted/30 p-3">
+          {reasons.map((r, i) => {
+            const cit = citations.find((c) => r.citationIds.includes(c.id));
+            return (
+              <div key={i} className="flex gap-2">
+                <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[9px] font-bold text-primary">
+                  {i + 1}
+                </span>
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  {r.text}
+                  {cit && (
+                    <span className="ml-1 rounded-sm bg-primary/10 px-1 py-0.5 text-[10px] font-medium text-primary">
+                      [{cit.title}]
+                    </span>
+                  )}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 export function ResultPanel() {
   const store = useBKAgent();
   const hasResult = store.flow !== "idle";
@@ -114,102 +154,139 @@ export function ResultPanel() {
     );
   }
 
+  const canRegister = store.selectedPlan !== null && store.confidenceScore >= 80;
+
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <div className="flex items-center justify-between border-b border-border/50 px-4 py-2.5">
-        <Tabs value={store.currentView} onValueChange={(v) => store.setCurrentView(v as "calendar" | "list")}>
-          <TabsList className="h-7">
-            <TabsTrigger value="calendar" className="text-xs px-2.5">
-              Lịch học
-            </TabsTrigger>
-            <TabsTrigger value="list" className="text-xs px-2.5">
-              Danh sách
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-        <div className="flex gap-1">
-          <Button
-            variant={store.selectedPlan === "A" ? "default" : "ghost"}
-            size="sm"
-            className="text-xs h-7"
-            disabled={store.selectedPlan === "A"}
-            onClick={() => store.acceptPlan("A")}
-          >
-            Plan A
-          </Button>
-          <Button
-            variant={store.selectedPlan === "B" ? "secondary" : "ghost"}
-            size="sm"
-            className="text-xs h-7"
-            disabled={store.selectedPlan === "B"}
-            onClick={() => store.acceptPlan("B")}
-          >
-            Plan B
-          </Button>
-        </div>
-      </div>
+    <>
+      <AdvisorBriefSheet />
+      <EditPlanSheet />
+      <RegisterDialog />
+      <GroupInviteSheet />
 
-      <ScrollArea className="flex-1">
-        <div className="space-y-4 p-4">
-          {store.planACourses.length === 0 && store.planBCourses.length === 0 ? (
-            <div className="flex h-32 items-center justify-center text-xs text-muted-foreground">
-              Agent đang tạo kế hoạch...
-            </div>
-          ) : store.currentView === "calendar" ? (
-            <VisualCalendar
-              planA={store.planACourses}
-              planB={store.planBCourses}
-              showPlanB={store.usePlanB || store.flow === "failure" || store.flow === "recovery"}
-              selectedPlan={store.selectedPlan}
-            />
-          ) : (
-            <div className="space-y-4">
-              {store.planACourses.length > 0 && (
-                <div>
-                  <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Plan A — Tối ưu
-                  </h4>
-                  <PlanListView courses={store.planACourses} plan="A" />
-                </div>
-              )}
-              {store.planBCourses.length > 0 && (store.usePlanB || store.flow === "failure" || store.flow === "recovery") && (
-                <div>
-                  <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    Plan B — Dự phòng
-                  </h4>
-                  <PlanListView courses={store.planBCourses} plan="B" />
-                </div>
-              )}
-            </div>
-          )}
-
-          <ConfidenceBar score={store.confidenceScore} />
-
-          <RedFlagBanner flags={store.redFlags} onAcknowledge={store.acknowledgeFlags} />
-
-          {store.citations.length > 0 && <CitationList citations={store.citations} />}
-
-          <Separator className="opacity-30" />
-
-          <div className="flex flex-wrap gap-2 pb-4">
-            {store.selectedPlan && (
-              <Button variant="outline" size="sm" className="text-xs gap-1.5" onClick={store.toggleEdit}>
-                <Pencil className="size-3" />
-                Chỉnh sửa kế hoạch
-              </Button>
-            )}
+      <div className="flex h-full flex-col overflow-hidden">
+        <div className="flex items-center justify-between border-b border-border/50 px-4 py-2.5">
+          <Tabs value={store.currentView} onValueChange={(v) => store.setCurrentView(v as "calendar" | "list")}>
+            <TabsList className="h-7">
+              <TabsTrigger value="calendar" className="text-xs px-2.5">
+                Lịch học
+              </TabsTrigger>
+              <TabsTrigger value="list" className="text-xs px-2.5">
+                Danh sách
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <div className="flex gap-1">
             <Button
-              variant="ghost"
+              variant={store.selectedPlan === "A" ? "default" : "ghost"}
               size="sm"
-              className="text-xs text-danger gap-1.5"
-              onClick={store.escalate}
+              className="text-xs h-7"
+              disabled={store.selectedPlan === "A"}
+              onClick={() => store.acceptPlan("A")}
             >
-              <UserRound className="size-3" />
-              Chuyển cố vấn học vụ
+              Plan A
+            </Button>
+            <Button
+              variant={store.selectedPlan === "B" ? "secondary" : "ghost"}
+              size="sm"
+              className="text-xs h-7"
+              disabled={store.selectedPlan === "B"}
+              onClick={() => store.acceptPlan("B")}
+            >
+              Plan B
             </Button>
           </div>
         </div>
-      </ScrollArea>
-    </div>
+
+        <ScrollArea className="flex-1">
+          <div className="space-y-4 p-4">
+            {store.planACourses.length === 0 && store.planBCourses.length === 0 ? (
+              <div className="flex h-32 items-center justify-center text-xs text-muted-foreground">
+                Agent đang tạo kế hoạch...
+              </div>
+            ) : store.currentView === "calendar" ? (
+              <VisualCalendar
+                planA={store.planACourses}
+                planB={store.planBCourses}
+                showPlanB={store.usePlanB || store.flow === "failure" || store.flow === "recovery"}
+                selectedPlan={store.selectedPlan}
+              />
+            ) : (
+              <div className="space-y-4">
+                {store.planACourses.length > 0 && (
+                  <div>
+                    <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      Plan A — Tối ưu
+                    </h4>
+                    <PlanListView courses={store.planACourses} plan="A" />
+                  </div>
+                )}
+                {store.planBCourses.length > 0 && (store.usePlanB || store.flow === "failure" || store.flow === "recovery") && (
+                  <div>
+                    <h4 className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      Plan B — Dự phòng
+                    </h4>
+                    <PlanListView courses={store.planBCourses} plan="B" />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <ConfidenceBar score={store.confidenceScore} />
+
+            <ReasoningPanel reasons={store.reasons} citations={store.citations} />
+
+            <RedFlagBanner flags={store.redFlags} onAcknowledge={store.acknowledgeFlags} />
+
+            {store.citations.length > 0 && <CitationList citations={store.citations} />}
+
+            <Separator className="opacity-30" />
+
+            <div className="flex flex-wrap gap-2 pb-4">
+              {canRegister && (
+                <Button
+                  size="sm"
+                  className="text-xs gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90"
+                  onClick={() => store.openRegisterDialog()}
+                >
+                  <CheckCircle2 className="size-3" />
+                  Đăng ký ngay
+                </Button>
+              )}
+              {store.planACourses.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs gap-1.5"
+                  onClick={() => store.openGroupInvite()}
+                >
+                  <Users className="size-3" />
+                  Mời bạn đăng ký cùng
+                </Button>
+              )}
+              {store.selectedPlan && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs gap-1.5"
+                  onClick={() => store.openEditPlan()}
+                >
+                  <Pencil className="size-3" />
+                  Chỉnh sửa kế hoạch
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-danger gap-1.5"
+                onClick={store.escalate}
+              >
+                <UserRound className="size-3" />
+                Chuyển cố vấn học vụ
+              </Button>
+            </div>
+          </div>
+        </ScrollArea>
+      </div>
+    </>
   );
 }
