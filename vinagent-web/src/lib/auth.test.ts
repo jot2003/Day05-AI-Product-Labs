@@ -6,17 +6,17 @@ describe("auth module", () => {
   });
 
   it("loginAccount succeeds with correct credentials", () => {
-    const result = loginAccount("20210001", "Nguyen Van An");
+    const result = loginAccount("20210001", "1");
     expect(result.ok).toBe(true);
   });
 
-  it("loginAccount fails with wrong name", () => {
-    const result = loginAccount("20210001", "Wrong Name");
+  it("loginAccount fails with wrong password", () => {
+    const result = loginAccount("20210001", "wrong");
     expect(result.ok).toBe(false);
   });
 
   it("loginAccount fails with unknown id", () => {
-    const result = loginAccount("UNKNOWN", "Anyone");
+    const result = loginAccount("UNKNOWN", "1");
     expect(result.ok).toBe(false);
   });
 
@@ -25,19 +25,19 @@ describe("auth module", () => {
   });
 
   it("getCurrentStudent returns student after login", () => {
-    loginAccount("20210001", "Nguyen Van An");
+    loginAccount("20210001", "1");
     const student = getCurrentStudent();
     expect(student?.id).toBe("20210001");
   });
 
   it("verifyCurrentStudent returns valid after login", () => {
-    loginAccount("20210001", "Nguyen Van An");
+    loginAccount("20210001", "1");
     const result = verifyCurrentStudent();
     expect(result.ok).toBe(true);
   });
 
   it("logoutAccount clears session", () => {
-    loginAccount("20210001", "Nguyen Van An");
+    loginAccount("20210001", "1");
     logoutAccount();
     expect(getCurrentStudent()).toBeNull();
   });

@@ -14,9 +14,10 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { getCurrentStudent } from "@/lib/auth";
+import { createGroupInvites } from "@/lib/group-registration";
 
 type Friend = { id: string; name: string };
 
@@ -36,18 +37,38 @@ export function GroupInviteSheet() {
 
   function handleSend() {
     if (selected.length === 0) return;
+    if (!store.hasRegistered || !store.selectedPlan) {
+      toast("Chưa đủ điều kiện gửi lời mời", {
+        description:
+          "Bạn cần đăng ký thành công ít nhất 1 lần trước, và chọn Plan A/B hiện tại.",
+      });
+      return;
+    }
+    const currentStudent = getCurrentStudent();
+    if (!currentStudent) {
+      toast("Bạn cần đăng nhập lại", { description: "Không thể xác định tài khoản hiện tại." });
+      return;
+    }
     const names = GROUP_FRIENDS.filter((f) => selected.includes(f.id)).map(
       (f) => f.name
     );
-    const prompt = `Tôi muốn đăng ký cùng ${names.join(" và ")}. Hãy tìm các slot không xung đột cho cả nhóm và tạo lịch chung tối ưu nhất.`;
+    const recipients = GROUP_FRIENDS.filter((f) => selected.includes(f.id));
+    const courses = store.selectedPlan === "B" ? store.planBCourses : store.planACourses;
+
+    createGroupInvites({
+      fromStudentId: currentStudent.id,
+      fromStudentName: currentStudent.name,
+      recipients,
+      planType: store.selectedPlan,
+      courses,
+    });
 
     toast("Đã gửi lời mời!", {
-      description: `${names.join(", ")} sẽ nhận được gợi ý lịch học cùng bạn.`,
+      description: `${names.join(", ")} sẽ nhận thông báo khi đăng nhập và tự xác nhận để auto đăng ký.`,
     });
 
     store.closeGroupInvite();
     setSelected([]);
-    store.generate(prompt);
   }
 
   return (
@@ -111,9 +132,8 @@ export function GroupInviteSheet() {
           <Separator className="opacity-30" />
 
           <p className="text-xs text-muted-foreground leading-relaxed">
-            BKAgent sẽ tìm các lớp có slot chung cho{" "}
-            {selected.length > 0 ? `bạn và ${selected.length} người bạn đã chọn` : "cả nhóm"}{" "}
-            và tự động điều chỉnh kế hoạch.
+            Flow 1 chiều: bạn phải đăng ký trước, sau đó gửi lời mời. Bạn bè sẽ
+            chỉ tự động đăng ký khi họ đăng nhập và bấm xác nhận lời mời.
           </p>
 
           <div className="flex gap-2">

@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 export default function LoginPage() {
   const router = useRouter();
   const [studentId, setStudentId] = useState("");
-  const [studentName, setStudentName] = useState("");
+  const [password, setPassword] = useState("");
   const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -21,7 +21,7 @@ export default function LoginPage() {
     setLoading(true);
     setStatus(null);
     await new Promise((r) => setTimeout(r, 400));
-    const result = loginAccount(studentId, studentName);
+    const result = loginAccount(studentId, password);
     setStatus(result);
     setLoading(false);
     if (result.ok) {
@@ -70,13 +70,13 @@ export default function LoginPage() {
 
           <h2 className="text-2xl font-bold text-foreground mb-1">Đăng nhập</h2>
           <p className="text-sm text-muted-foreground mb-8">
-            Sử dụng mã sinh viên và họ tên từ hệ thống HUST
+            Đăng nhập bằng MSSV và mật khẩu.
           </p>
 
           <form className="space-y-4" onSubmit={onSubmit}>
             <div className="space-y-1.5">
               <label htmlFor="student-id" className="text-sm font-medium text-foreground">
-                Mã sinh viên
+                MSSV
               </label>
               <Input
                 id="student-id"
@@ -90,18 +90,20 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="student-name" className="text-sm font-medium text-foreground">
-                Họ và tên
+              <label htmlFor="password" className="text-sm font-medium text-foreground">
+                Password
               </label>
               <Input
-                id="student-name"
-                value={studentName}
-                onChange={(e) => setStudentName(e.target.value)}
-                placeholder="VD: Nguyễn Văn An"
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Nhập password"
                 required
                 className="h-11 text-sm"
-                autoComplete="name"
+                autoComplete="current-password"
               />
+              <p className="text-[11px] text-muted-foreground">Demo mặc định: password = 1</p>
             </div>
 
             {status && !status.ok && (

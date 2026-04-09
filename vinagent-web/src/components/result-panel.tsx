@@ -19,17 +19,42 @@ import { RegisterDialog } from "./register-dialog";
 import { GroupInviteSheet } from "./group-invite-sheet";
 
 function computePlanConfidence(
-  courses: { slotsRemaining?: number; seatRisk?: "low" | "medium" | "high" }[]
+  courses: { slotsRemaining?: number; capacity?: number; seatRisk?: "low" | "medium" | "high"; day: string; startHour: number; endHour: number }[]
 ) {
   if (courses.length === 0) return 0;
-  let score = 100;
-  for (const c of courses) {
-    if (c.seatRisk === "high") score -= 16;
+  // Weighted reliability score (spec-aligned trust gate):
+  // - Seat pressure / risk (60%)
+  // - Schedule feasibility/stability (25%)
+  // - Distribution comfort (15%)
+  const seatScores = courses.map((c) => {
+    const cap = c.capacity ?? 0;
+    const remaining = c.slotsRemaining ?? cap;
+    const ratio = cap > 0 ? remaining / cap : 0.5;
+    let score = Math.max(0, Math.min(100, Math.round(ratio * 100)));
+    if (c.seatRisk === "high") score -= 18;
     else if (c.seatRisk === "medium") score -= 8;
-    if ((c.slotsRemaining ?? 999) <= 3) score -= 10;
-    else if ((c.slotsRemaining ?? 999) <= 8) score -= 5;
-  }
-  return Math.max(35, Math.min(99, Math.round(score)));
+    if (remaining <= 3) score -= 12;
+    else if (remaining <= 8) score -= 6;
+    return Math.max(0, score);
+  });
+  const seatComponent =
+    seatScores.reduce((sum, v) => sum + v, 0) / seatScores.length;
+
+  // Feasibility proxy: avoid overloaded same-day blocks
+  const dayLoad: Record<string, number> = {};
+  for (const c of courses) dayLoad[c.day] = (dayLoad[c.day] ?? 0) + (c.endHour - c.startHour);
+  const maxDayLoad = Math.max(...Object.values(dayLoad));
+  const feasibilityComponent = Math.max(55, 100 - Math.round((maxDayLoad - 3) * 10));
+
+  // Distribution proxy: penalize too many classes same day
+  const maxCountSameDay = Math.max(
+    ...Object.keys(dayLoad).map((d) => courses.filter((c) => c.day === d).length)
+  );
+  const distributionComponent = maxCountSameDay >= 3 ? 70 : maxCountSameDay === 2 ? 85 : 95;
+
+  const finalScore =
+    seatComponent * 0.6 + feasibilityComponent * 0.25 + distributionComponent * 0.15;
+  return Math.max(35, Math.min(99, Math.round(finalScore)));
 }
 
 function ConfidenceBar({
@@ -108,7 +133,7 @@ function RedFlagBanner({ flags, onAcknowledge }: { flags: string[]; onAcknowledg
   );
 }
 
-function PlanListView({ courses, plan }: { courses: { code: string; name: string; day: string; startHour: number; endHour: number; room?: string; slotsRemaining?: number; seatRisk?: "low" | "medium" | "high" }[]; plan: "A" | "B" }) {
+function PlanListView({ courses, plan }: { courses: { code: string; name: string; day: string; startHour: number; endHour: number; room?: string; enrolled?: number; capacity?: number; slotsRemaining?: number; seatRisk?: "low" | "medium" | "high" }[]; plan: "A" | "B" }) {
   return (
     <div className="space-y-2">
       {courses.map((c, idx) => (
@@ -127,7 +152,7 @@ function PlanListView({ courses, plan }: { courses: { code: string; name: string
               {c.day} {c.startHour}:00–{c.endHour > Math.floor(c.endHour) ? `${Math.floor(c.endHour)}:30` : `${c.endHour}:00`} · {c.room}
               {typeof c.slotsRemaining === "number" && (
                 <span className={cn("ml-1", c.seatRisk === "high" ? "text-danger font-semibold" : "")}>
-                  · còn {c.slotsRemaining} chỗ
+                  · còn {c.slotsRemaining}/{c.capacity ?? "?"} chỗ
                 </span>
               )}
             </p>

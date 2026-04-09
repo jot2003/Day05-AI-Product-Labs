@@ -27,7 +27,9 @@ export function VisualCalendar({
 
   function getSlotStyle(slot: CourseSlot) {
     const top = ((slot.startHour - START_HOUR) / (END_HOUR - START_HOUR)) * 100;
-    const height = ((slot.endHour - slot.startHour) / (END_HOUR - START_HOUR)) * 100;
+    const rawHeight = ((slot.endHour - slot.startHour) / (END_HOUR - START_HOUR)) * 100;
+    // Clamp to keep cards visually consistent (avoid too short/too tall cards)
+    const height = Math.max(11, Math.min(22, rawHeight));
     return { top: `${top}%`, height: `${height}%` };
   }
 
@@ -45,7 +47,7 @@ export function VisualCalendar({
         <div
           key={`${plan}-${slot.code}-${slot.day}-${idx}`}
           className={cn(
-            "absolute rounded-md border px-1 py-1 text-[10px] font-medium leading-tight transition-opacity overflow-hidden",
+            "absolute rounded-md border px-1.5 py-1 text-[10px] font-medium leading-tight transition-opacity overflow-hidden",
             plan === "A"
               ? "bg-primary text-white border-primary shadow-sm"
               : "bg-gold text-foreground border-gold/60 shadow-sm",
@@ -58,21 +60,21 @@ export function VisualCalendar({
             paddingLeft: "4px",
             paddingRight: "4px",
           }}
-          title={`${slot.code} ${slot.name}\n${slot.day} ${slot.startHour}:00–${slot.endHour}:00\n${slot.room ?? ""}${slot.slotsRemaining != null ? `\nCòn ${slot.slotsRemaining} chỗ` : ""}`}
+          title={`${slot.code} ${slot.name}\n${slot.day} ${slot.startHour}:00–${slot.endHour}:00\n${slot.room ?? ""}${slot.slotsRemaining != null ? `\nCòn ${slot.slotsRemaining}/${slot.capacity ?? "?"} chỗ` : ""}`}
         >
           <span className="font-semibold">{slot.code}</span>
           <br />
           <span className="opacity-80 truncate block">{slot.name}</span>
-          {slot.room && <><br /><span className="opacity-60">{slot.room}</span></>}
+          {slot.room && <><span className="opacity-60 truncate block">{slot.room}</span></>}
           {slot.slotsRemaining != null && (
             <span className={cn(
-              "mt-0.5 flex items-center gap-0.5",
+              "mt-0.5 flex items-center gap-0.5 truncate",
               slot.seatRisk === "high"
                 ? plan === "A" ? "text-yellow-200" : "text-red-700"
                 : "opacity-70"
             )}>
               {slot.seatRisk === "high" && "⚠ "}
-              {slot.slotsRemaining} chỗ
+              {slot.slotsRemaining}/{slot.capacity ?? "?"} chỗ
             </span>
           )}
         </div>

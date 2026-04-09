@@ -21,6 +21,8 @@ export type CourseSlot = {
   startHour: number;
   endHour: number;
   room?: string;
+  enrolled?: number;
+  capacity?: number;
   slotsRemaining?: number;
   seatRisk?: "low" | "medium" | "high";
 };
@@ -76,6 +78,7 @@ export interface BKAgentState {
   registerDialogOpen: boolean;
   groupInviteOpen: boolean;
   registerStatus: RegisterStatus;
+  hasRegistered: boolean;
 
   setPrompt: (prompt: string) => void;
   setToast: (toast: { title: string; message: string } | null) => void;
@@ -111,7 +114,7 @@ function makeStepId() {
 }
 
 function toCourseSlots(
-  plan: { code: string; name: string; day: string; startHour: number; endHour: number; room: string; slotsRemaining?: number; seatRisk?: string }[] | null
+  plan: { code: string; name: string; day: string; startHour: number; endHour: number; room: string; enrolled?: number; capacity?: number; slotsRemaining?: number; seatRisk?: string }[] | null
 ): CourseSlot[] {
   if (!plan) return [];
   return plan.map((s) => ({
@@ -121,6 +124,8 @@ function toCourseSlots(
     startHour: s.startHour,
     endHour: s.endHour,
     room: s.room,
+    enrolled: s.enrolled,
+    capacity: s.capacity,
     slotsRemaining: s.slotsRemaining,
     seatRisk: s.seatRisk as CourseSlot["seatRisk"],
   }));
@@ -156,6 +161,7 @@ const initialState = {
   registerDialogOpen: false,
   groupInviteOpen: false,
   registerStatus: "idle" as RegisterStatus,
+  hasRegistered: false,
 };
 
 export const useBKAgent = create<BKAgentState>()(
@@ -251,8 +257,8 @@ export const useBKAgent = create<BKAgentState>()(
                   type DoneEvent = {
                     text: string; citations: Citation[]; confidenceScore: number;
                     flow: "happy" | "lowConfidence" | "failure";
-                    planA: { code: string; name: string; day: string; startHour: number; endHour: number; room: string; slotsRemaining?: number; seatRisk?: string }[] | null;
-                    planB: { code: string; name: string; day: string; startHour: number; endHour: number; room: string; slotsRemaining?: number; seatRisk?: string }[] | null;
+                    planA: { code: string; name: string; day: string; startHour: number; endHour: number; room: string; enrolled?: number; capacity?: number; slotsRemaining?: number; seatRisk?: string }[] | null;
+                    planB: { code: string; name: string; day: string; startHour: number; endHour: number; room: string; enrolled?: number; capacity?: number; slotsRemaining?: number; seatRisk?: string }[] | null;
                     suggestions?: string[];
                   };
                   const data = event as unknown as DoneEvent;
@@ -470,7 +476,11 @@ export const useBKAgent = create<BKAgentState>()(
         set({ registerDialogOpen: false, registerStatus: "idle" }),
       openGroupInvite: () => set({ groupInviteOpen: true }),
       closeGroupInvite: () => set({ groupInviteOpen: false }),
-      setRegisterStatus: (status) => set({ registerStatus: status }),
+      setRegisterStatus: (status) =>
+        set((s) => ({
+          registerStatus: status,
+          hasRegistered: status === "success" ? true : s.hasRegistered,
+        })),
 
       newSession: () => {
         const s = get();

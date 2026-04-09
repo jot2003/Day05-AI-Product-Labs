@@ -1,6 +1,7 @@
 {
   "currentStudentId": "20210001",
   "id": "20210001",
+  "password": "1",
   "name": "Nguyễn Văn An",
   "major": "Khoa học Máy tính",
   "program": "CTTT",
@@ -35,6 +36,7 @@
   "students": [
     {
       "id": "20210001",
+      "password": "1",
       "name": "Nguyễn Văn An",
       "major": "Khoa học Máy tính",
       "program": "CTTT",
@@ -61,6 +63,7 @@
     },
     {
       "id": "20210042",
+      "password": "1",
       "name": "Trần Minh Đức",
       "major": "Khoa học Máy tính",
       "program": "CTTT",
@@ -83,6 +86,7 @@
     },
     {
       "id": "20210078",
+      "password": "1",
       "name": "Lê Thị Hương",
       "major": "Khoa học Máy tính",
       "program": "CTTT",
@@ -105,6 +109,7 @@
     },
     {
       "id": "20210156",
+      "password": "1",
       "name": "Phạm Hoàng Nam",
       "major": "Khoa học Máy tính",
       "program": "CTTT",

@@ -44,8 +44,6 @@ const SYSTEM_PROMPT = `Bạn là BKAgent — trợ lý AI đăng ký tín chỉ 
 - Trả lời bằng tiếng Việt, tự nhiên, ngắn gọn, dễ hiểu.
 - Khi trích dẫn dữ liệu từ tool, PHẢI gắn citation theo format: [citation:N] (N là số thứ tự, bắt đầu từ 1).
 - Mỗi fact phải có ít nhất 1 citation.
-- Cuối phản hồi, đánh giá confidence score (0-100) và ghi rõ: "Điểm tin cậy: XX/100".
-- Nếu confidence < 80, khuyên sinh viên xem Plan B.
 - Nếu có rủi ro hết chỗ (seatRisk high), CẢNH BÁO rõ ràng.
 - Cuối mỗi phản hồi, LUÔN thêm đúng 3 gợi ý câu hỏi tiếp theo, format:
   SUGGESTIONS: ["câu gợi ý 1", "câu gợi ý 2", "câu gợi ý 3"]
@@ -58,8 +56,6 @@ const SYSTEM_PROMPT = `Bạn là BKAgent — trợ lý AI đăng ký tín chỉ 
 • MI1131 (Giải tích II) — Thứ 6, 14:00–16:30, phòng D5-401 (45/90 chỗ)
 
 ⚠ Lưu ý: SSH1121 còn 2/150 chỗ, rủi ro hết chỗ cao [citation:3].
-
-Điểm tin cậy: 72/100
 
 SUGGESTIONS: ["So sánh Plan A và Plan B cho tôi", "Tôi có thể đổi lịch môn Giải tích II không?", "Môn nào có nguy cơ hết chỗ cao nhất?"]"
 
@@ -159,6 +155,18 @@ function parseSuggestions(text: string): { cleanText: string; suggestions: strin
   }
 }
 
+function normalizeCitationRefs(text: string, citations: Citation[]): string {
+  const validIds = new Set(citations.map((c) => c.id));
+  return text.replace(/\[(\d+(?:,\d+)*)\]/g, (_m, group) => {
+    const keep = String(group)
+      .split(",")
+      .map((x) => Number(x.trim()))
+      .filter((id) => validIds.has(id));
+    if (keep.length === 0) return "";
+    return `[${keep.join(",")}]`;
+  });
+}
+
 function extractCitationsAndPlans(messages: BaseMessage[]) {
   const citations: Citation[] = [];
   let citationCounter = 1;
@@ -219,17 +227,19 @@ function parseAgentResponse(messages: BaseMessage[]): AgentResponse {
 
   // Normalize citation markers: [citation:N] → [N]
   rawText = rawText.replace(/\[citation:(\d+)\]/g, "[$1]");
+  // Remove legacy "Điểm tin cậy" lines from model text (UI computes confidence separately)
+  rawText = rawText.replace(/\n?Điểm tin cậy:\s*\d+\s*\/\s*100\s*/gi, "\n");
 
   const { cleanText: text, suggestions } = parseSuggestions(rawText);
+  const normalizedText = normalizeCitationRefs(text, citations);
 
-  const scoreMatch = text.match(/Điểm tin cậy:\s*(\d+)/);
-  const confidenceScore = scoreMatch ? parseInt(scoreMatch[1], 10) : 85;
+  const confidenceScore = 85;
 
   let flow: AgentResponse["flow"] = "happy";
   if (confidenceScore < 50) flow = "failure";
   else if (confidenceScore < 80) flow = "lowConfidence";
 
-  return { text, citations, confidenceScore, flow, planA, planB, toolsUsed, suggestions };
+  return { text: normalizedText, citations, confidenceScore, flow, planA, planB, toolsUsed, suggestions };
 }
 
 // ── Run Agent (non-streaming) ──

@@ -2,6 +2,7 @@
 
 export type StudentProfile = {
   id: string;
+  password?: string;
   name: string;
   major: string;
   program?: string;

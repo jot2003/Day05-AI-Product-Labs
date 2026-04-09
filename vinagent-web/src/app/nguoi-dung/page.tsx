@@ -1,16 +1,18 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ShieldCheck, LogOut, User, BookOpen, Star, Calendar, GraduationCap, ChevronRight } from "lucide-react";
 import { getCurrentStudent, logoutAccount, verifyCurrentStudent } from "@/lib/auth";
+import { getPendingInvitesFor, markInviteStatus, setInviteAction, type GroupInvite } from "@/lib/group-registration";
 import { Button } from "@/components/ui/button";
 
 export default function UserProfilePage() {
   const router = useRouter();
   const [verification, setVerification] = useState<{ ok: boolean; message: string } | null>(null);
+  const [pendingInvites, setPendingInvites] = useState<GroupInvite[]>([]);
 
   const student = useSyncExternalStore(
     () => () => {},
@@ -20,6 +22,10 @@ export default function UserProfilePage() {
 
   function onVerify() {
     setVerification(verifyCurrentStudent());
+  }
+
+  function refreshInvites(studentId: string) {
+    setPendingInvites(getPendingInvitesFor(studentId));
   }
 
   function onLogout() {
@@ -49,6 +55,10 @@ export default function UserProfilePage() {
       </div>
     );
   }
+
+  useEffect(() => {
+    refreshInvites(student.id);
+  }, [student.id]);
 
   const infoRows = [
     { icon: User, label: "Mã sinh viên", value: student.id },
@@ -93,6 +103,50 @@ export default function UserProfilePage() {
 
       {/* Card pulled up over header */}
       <div className="max-w-lg mx-auto px-4 -mt-8">
+        {pendingInvites.length > 0 && (
+          <div className="mb-3 rounded-2xl border border-primary/25 bg-primary/5 p-4">
+            <p className="text-sm font-semibold text-primary mb-2">
+              Bạn có {pendingInvites.length} lời mời đăng ký cùng nhóm
+            </p>
+            <div className="space-y-2">
+              {pendingInvites.map((invite) => (
+                <div key={invite.id} className="rounded-lg border border-primary/20 bg-background p-3">
+                  <p className="text-xs text-foreground">
+                    <span className="font-semibold">{invite.fromStudentName}</span> mời bạn theo Plan {invite.planType}.
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    {invite.courses.length} môn học sẽ được nạp tự động sau khi bạn xác nhận.
+                  </p>
+                  <div className="mt-2 flex gap-2">
+                    <Button
+                      size="sm"
+                      className="h-8 text-xs"
+                      onClick={() => {
+                        markInviteStatus(invite.id, "accepted");
+                        setInviteAction(invite);
+                        router.push("/tao-ke-hoach");
+                      }}
+                    >
+                      Xác nhận & tự động đăng ký
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs"
+                      onClick={() => {
+                        markInviteStatus(invite.id, "rejected");
+                        refreshInvites(student.id);
+                      }}
+                    >
+                      Từ chối
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="rounded-2xl border border-border bg-card shadow-lg overflow-hidden">
           <div className="px-5 py-4 border-b border-border/50">
             <h3 className="text-sm font-semibold text-foreground">Thông tin sinh viên</h3>
