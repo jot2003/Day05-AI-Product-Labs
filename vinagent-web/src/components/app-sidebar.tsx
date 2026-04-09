@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, CalendarPlus, BarChart3 } from "lucide-react";
+import { Home, CalendarPlus, BarChart3, User } from "lucide-react";
 
 import {
   Sidebar,
@@ -19,6 +19,7 @@ const NAV_ITEMS = [
   { href: "/", label: "Trang chủ", icon: Home },
   { href: "/tao-ke-hoach", label: "Tạo kế hoạch", icon: CalendarPlus },
   { href: "/chi-so", label: "Bảng chỉ số", icon: BarChart3 },
+  { href: "/nguoi-dung", label: "Người dùng", icon: User },
 ];
 
 export function AppSidebar() {
