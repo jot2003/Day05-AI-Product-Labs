@@ -23,8 +23,8 @@ export const getStudentProfileTool = tool(
       ...student,
       _citation: {
         type: "sis",
-        title: "Hồ sơ sinh viên — VinUni SIS",
-        detail: `${student.name} (${student.id}), ${student.major} năm ${student.year}, GPA ${student.gpa}. Đã hoàn thành: ${student.completedCourses.join(", ")}.`,
+        title: "Hồ sơ sinh viên — HUST dk-sis",
+        detail: `${studentData.name} (${studentData.id}), ${studentData.major} năm ${studentData.year}, GPA ${studentData.gpa}. Đã hoàn thành: ${studentData.completedCourses.join(", ")}.`,
       },
     });
   },
@@ -56,8 +56,8 @@ export const searchCoursesTool = tool(
       semester: "20252",
       _citation: {
         type: "sis",
-        title: "Danh mục môn học HK 20252 — VinUni SIS",
-        detail: `Tìm thấy ${results.length} môn học${query ? ` cho "${query}"` : ""}. Nguồn: SIS VinUniversity.`,
+        title: "Danh mục môn học HK 20252 — HUST dk-sis",
+        detail: `Tìm thấy ${results.length} môn học${query ? ` cho "${query}"` : ""}. Nguồn: Hệ thống đăng ký tín chỉ HUST.`,
       },
     });
   },
@@ -163,7 +163,7 @@ export const checkPrerequisitesTool = tool(
       studentCompleted: completed,
       _citation: {
         type: "prerequisite",
-        title: "Kiểm tra điều kiện tiên quyết — VinUni SIS",
+        title: "Kiểm tra điều kiện tiên quyết — HUST dk-sis",
         detail: allOk
           ? `Sinh viên đã hoàn thành: ${completed.join(", ")}. Tất cả điều kiện tiên quyết cho ${course_codes.join(", ")} đều đáp ứng.`
           : `Thiếu tiên quyết: ${failedCourses.map((f) => `${f.course} (cần: ${f.missing.join(", ")})`).join("; ")}.`,
@@ -278,7 +278,7 @@ export const generateScheduleTool = tool(
       constraints: { avoid_morning, avoid_afternoon, prefer_group_friends },
       _citation: {
         type: "sis",
-        title: "Thuật toán xếp lịch — VinAgent Scheduler",
+        title: "Thuật toán xếp lịch — BKAgent Scheduler",
         detail: `Đã tạo ${planA ? "Plan A" : ""}${planA && planB ? " + " : ""}${planB ? "Plan B" : ""} cho ${target_courses.join(", ")}. Dữ liệu: TKB20252-FULL, ${scheduleData.length} lớp.`,
       },
     });
