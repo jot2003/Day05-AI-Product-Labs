@@ -94,14 +94,15 @@ function MessageBubble({ message, isLatest }: { message: ChatMessage; isLatest: 
 }
 
 export function ChatPanel() {
-  const { messages, prompt, setPrompt, generate, isTyping, flow, clarify, streamingSteps } =
+  const { messages, prompt, setPrompt, generate, isTyping, flow, clarify, streamingSteps, suggestions } =
     useBKAgent();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const el = scrollRef.current;
-    if (el && typeof el.scrollTo === "function") {
-      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+    // @base-ui ScrollArea places ref on Root; actual scrollable node is the Viewport
+    const viewport = scrollRef.current?.querySelector<HTMLElement>('[data-slot="scroll-area-viewport"]') ?? scrollRef.current;
+    if (viewport) {
+      viewport.scrollTo({ top: viewport.scrollHeight, behavior: "smooth" });
     }
   }, [messages.length, isTyping, streamingSteps.length]);
 
@@ -221,9 +222,32 @@ export function ChatPanel() {
             </div>
           )}
 
+          {/* AI-generated follow-up suggestions */}
+          {suggestions.length > 0 && !isTyping && (
+            <div className="pl-10 space-y-2">
+              <p className="text-xs text-muted-foreground font-medium">Gợi ý tiếp theo:</p>
+              <div className="flex flex-col gap-1.5">
+                {suggestions.map((s, i) => (
+                  <button
+                    key={i}
+                    className="group relative text-left text-sm rounded-lg border border-primary/25 bg-primary/5 hover:bg-primary/12 active:scale-[0.98] transition-all px-3.5 py-2.5 text-primary leading-snug overflow-hidden"
+                    onClick={() => {
+                      setPrompt(s);
+                      generate(s);
+                    }}
+                  >
+                    <span className="absolute inset-0 rounded-lg ring-1 ring-primary/10 group-hover:ring-primary/30 transition-all" />
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {(flow === "lowConfidence" || flow === "idle") &&
             messages.length > 0 &&
-            !isTyping && (
+            !isTyping &&
+            suggestions.length === 0 && (
               <div className="flex gap-2 pl-10">
                 <Button
                   variant="outline"

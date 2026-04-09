@@ -8,7 +8,6 @@ import { useBKAgent } from "@/lib/store";
 import { VisualCalendar } from "./visual-calendar";
 import { CitationList } from "./citation-popover";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,27 +21,22 @@ import { GroupInviteSheet } from "./group-invite-sheet";
 
 function ConfidenceBar({ score }: { score: number }) {
   const label = score >= 80 ? "An toàn" : score >= 60 ? "Cần kiểm tra" : "Rủi ro";
-  const indicatorClass = score >= 80
-    ? "[&>div]:bg-success"
-    : score >= 60
-      ? "[&>div]:bg-warning"
-      : "[&>div]:bg-danger";
-  const borderClass = score >= 80 ? "border-success/30" : score >= 60 ? "border-warning/30" : "border-danger/30";
+  const trackBg = score >= 80 ? "bg-white/20" : score >= 60 ? "bg-white/20" : "bg-white/20";
+  const thumbColor = score >= 80 ? "[&>div]:bg-white" : score >= 60 ? "[&>div]:bg-yellow-300" : "[&>div]:bg-red-300";
 
   return (
-    <Card className={cn("border bg-white shadow-sm", borderClass)}>
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-bold text-primary">Độ tin cậy</span>
-          <span className="font-mono text-2xl font-bold text-foreground">
-            {score}
-            <span className="text-sm text-muted-foreground font-normal">/100</span>
-          </span>
+    <div className="rounded-lg bg-primary text-white shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3">
+        <div>
+          <span className="text-sm font-bold text-white">Độ tin cậy</span>
+          <p className="text-xs text-white/70 mt-0.5">{label}</p>
         </div>
-        <Progress value={score} className={cn("h-2", indicatorClass)} />
-        <p className="mt-1.5 text-xs font-medium text-muted-foreground leading-normal">{label}</p>
-      </CardContent>
-    </Card>
+        <span className="font-mono text-3xl font-bold text-white">
+          {score}<span className="text-sm font-normal text-white/70">/100</span>
+        </span>
+      </div>
+      <Progress value={score} className={cn("h-1.5 rounded-none", trackBg, thumbColor)} />
+    </div>
   );
 }
 
@@ -88,7 +82,9 @@ function PlanListView({ courses, plan }: { courses: { code: string; name: string
             {c.code.slice(-3)}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-primary leading-normal">{c.code} — {c.name}</p>
+            <p className={cn("text-sm font-bold leading-normal", plan === "A" ? "text-primary" : "text-[oklch(0.65_0.15_86)]")}>
+              {c.code} — {c.name}
+            </p>
             <p className="text-xs text-muted-foreground leading-normal">
               {c.day} {c.startHour}:00–{c.endHour > Math.floor(c.endHour) ? `${Math.floor(c.endHour)}:30` : `${c.endHour}:00`} · {c.room}
             </p>
@@ -167,30 +163,42 @@ export function ResultPanel() {
       <div className="flex h-full flex-col overflow-hidden">
         <div className="flex items-center justify-between border-b border-border/50 px-4 py-2.5">
           <Tabs value={store.currentView} onValueChange={(v) => store.setCurrentView(v as "calendar" | "list")}>
-            <TabsList className="h-7">
-              <TabsTrigger value="calendar" className="text-xs px-2.5">
+            <TabsList className="h-7 bg-primary/10 border border-primary/20">
+              <TabsTrigger
+                value="calendar"
+                className="text-xs px-2.5 text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-white"
+              >
                 Lịch học
               </TabsTrigger>
-              <TabsTrigger value="list" className="text-xs px-2.5">
+              <TabsTrigger
+                value="list"
+                className="text-xs px-2.5 text-primary/70 data-[state=active]:bg-primary data-[state=active]:text-white"
+              >
                 Danh sách
               </TabsTrigger>
             </TabsList>
           </Tabs>
           <div className="flex gap-1">
             <Button
-              variant={store.selectedPlan === "A" ? "default" : "ghost"}
               size="sm"
-              className="text-xs h-7"
-              disabled={store.selectedPlan === "A"}
+              className={cn(
+                "text-xs h-7 transition-colors",
+                store.selectedPlan === "A"
+                  ? "bg-primary text-white hover:bg-primary/90"
+                  : "bg-transparent border border-primary/30 text-primary hover:bg-primary hover:text-white"
+              )}
               onClick={() => store.acceptPlan("A")}
             >
               Plan A
             </Button>
             <Button
-              variant={store.selectedPlan === "B" ? "secondary" : "ghost"}
               size="sm"
-              className="text-xs h-7"
-              disabled={store.selectedPlan === "B"}
+              className={cn(
+                "text-xs h-7 transition-colors",
+                store.selectedPlan === "B"
+                  ? "bg-gold text-foreground hover:bg-gold/90"
+                  : "bg-transparent border border-primary/30 text-primary hover:bg-gold hover:text-foreground"
+              )}
               onClick={() => store.acceptPlan("B")}
             >
               Plan B

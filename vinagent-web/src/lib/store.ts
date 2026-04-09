@@ -62,6 +62,7 @@ export interface BKAgentState {
   planBCourses: CourseSlot[];
   chatHistory: { role: "user" | "model"; text: string }[];
   streamingSteps: AgentStep[];
+  suggestions: string[];
 
   // Chat session history
   sessions: ChatSession[];
@@ -143,6 +144,7 @@ const initialState = {
   planBCourses: [] as CourseSlot[],
   chatHistory: [] as { role: "user" | "model"; text: string }[],
   streamingSteps: [] as AgentStep[],
+  suggestions: [] as string[],
   advisorBriefOpen: false,
   editPlanOpen: false,
   registerDialogOpen: false,
@@ -300,6 +302,7 @@ export const useBKAgent = create<BKAgentState>()(
                       toast: null,
                       planACourses: updatedPlanA,
                       planBCourses: updatedPlanB,
+                      suggestions: data.suggestions ?? [],
                       chatHistory: [
                         ...s.chatHistory,
                         { role: "user" as const, text: inputPrompt },
