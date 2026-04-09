@@ -55,7 +55,7 @@ export function GroupInviteSheet() {
       open={store.groupInviteOpen}
       onOpenChange={(open) => !open && store.closeGroupInvite()}
     >
-      <SheetContent className="w-full sm:max-w-md">
+      <SheetContent className="w-[480px] max-w-[90vw] overflow-y-auto">
         <SheetHeader className="mb-4">
           <div className="flex items-center gap-2">
             <Users className="size-4 text-primary" />

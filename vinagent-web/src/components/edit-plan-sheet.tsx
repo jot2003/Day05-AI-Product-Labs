@@ -93,7 +93,7 @@ export function EditPlanSheet() {
 
   return (
     <Sheet open={store.editPlanOpen} onOpenChange={(open) => !open && store.closeEditPlan()}>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+      <SheetContent className="w-[520px] max-w-[90vw] overflow-y-auto">
         <SheetHeader className="mb-4">
           <div className="flex items-center gap-2">
             <Pencil className="size-4 text-primary" />
