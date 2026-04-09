@@ -8,10 +8,11 @@ BKAgent là trợ lý AI hỗ trợ sinh viên HUST lập kế hoạch đăng k�
 
 ## Links
 - Source code: `vinagent-web/`
-- Group spec (Lab 5): `lab 5/group/E3-C401/spec-draft.md`
-- SPEC final (Lab 6): `lab 6/spec-final.md`
-- Demo script: `lab 6/demo-script.md`
-- TODO: bổ sung link video demo/public deploy nếu cần nộp ngoài repo.
+- Group spec final: `lab 6/group/spec-final.md`
+- Demo script: `lab 6/group/demo-script.md`
+- Demo slides: `lab 6/group/demo-slides.pdf`
+- Tham chiếu lịch sử (Lab 5 draft): `lab 5/group/E3-C401/spec-draft.md`
+- Public deploy/video: chưa đính kèm trong repo (nộp bổ sung trên LMS nếu yêu cầu).
 
 ## Tools và stack
 - Frontend/Backend: Next.js App Router + React + TypeScript

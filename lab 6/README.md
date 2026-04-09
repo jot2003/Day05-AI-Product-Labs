@@ -357,10 +357,18 @@ Nếu test sớm từ tối D5 thì có thể iterate thêm 2-3 vòng, prompt s�
 ## BKAgent sync notes (E3-C401)
 
 Các file đã đồng bộ theo project BKAgent trong workspace này:
-- `spec-final.md`
-- `prototype-readme.md`
-- `demo-script.md`
+- `group/spec-final.md`
+- `group/prototype-readme.md`
+- `group/demo-script.md`
+- `group/demo-slides.pdf`
+- `individual/2A202600372_HoangKimTriThanh/reflection.md`
+- `individual/2A202600423_QuachGiaDuoc/reflection.md`
 
 Nguồn tham chiếu nội bộ:
-- `lab 5/group/E3-C401/spec-draft.md`
 - `vinagent-web/` (working prototype)
+- `lab 6/group/spec-final.md`
+- `lab 6/group/prototype-readme.md`
+- `lab 6/group/demo-script.md`
+- `lab 6/02-templates/BKAgent-filled-submission.md`
+- `lab 6/03-tools-guide/BKAgent-tools-guide.md`
+- `lab 6/04-reference/BKAgent-reference.md`
