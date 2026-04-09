@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogIn } from "lucide-react";
 
@@ -45,7 +44,7 @@ export default function LoginPage() {
                 id="student-id-login"
                 value={studentId}
                 onChange={(e) => setStudentId(e.target.value)}
-                placeholder="VD: 2A202600205"
+                placeholder="VD: 20210001"
               />
             </div>
 
@@ -68,9 +67,6 @@ export default function LoginPage() {
             <Button type="submit" className="w-full">Đăng nhập</Button>
           </form>
 
-          <p className="mt-4 text-xs text-muted-foreground">
-            Chưa có tài khoản? <Link href="/dang-ky" className="text-primary underline">Đăng ký</Link>
-          </p>
         </CardContent>
       </Card>
     </div>

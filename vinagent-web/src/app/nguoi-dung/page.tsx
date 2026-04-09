@@ -35,16 +35,12 @@ export default function UserProfilePage() {
             <CardTitle>Chưa đăng nhập</CardTitle>
             <CardDescription>
               Vui lòng đăng nhập để truy cập trang Người dùng.
-              Nếu chưa có tài khoản, bạn cần đăng ký trước.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <Button asChild>
               <Link href="/dang-nhap">Đăng nhập</Link>
             </Button>
-            <p className="text-xs text-muted-foreground">
-              Chưa có tài khoản? <Link href="/dang-ky" className="text-primary underline">Đăng ký</Link>
-            </p>
           </CardContent>
         </Card>
       </div>

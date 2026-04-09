@@ -5,35 +5,15 @@ import {
   getStudentById,
   loginAccount,
   logoutAccount,
-  registerAccount,
   verifyCurrentStudent,
 } from "./auth";
 
-describe("auth login/register flows", () => {
+describe("auth login flows", () => {
   beforeEach(() => {
     window.localStorage.clear();
   });
 
-  it("registers a valid student id and name", () => {
-    const result = registerAccount("20210001", "Nguyễn Văn An");
-    expect(result.ok).toBe(true);
-  });
-
-  it("rejects unknown student id at register", () => {
-    const result = registerAccount("unknown-id", "Nguyễn Văn An");
-    expect(result.ok).toBe(false);
-    expect(result.message).toMatch(/Không tìm thấy người dùng/i);
-  });
-
-  it("rejects register when student name mismatches", () => {
-    const result = registerAccount("20210001", "Sai Tên");
-    expect(result.ok).toBe(false);
-    expect(result.message).toMatch(/Họ tên không khớp/i);
-  });
-
-  it("logs in after successful register", () => {
-    registerAccount("20210001", "Nguyễn Văn An");
-
+  it("logs in directly with valid student id and name", () => {
     const result = loginAccount("20210001", "Nguyễn Văn An");
     expect(result.ok).toBe(true);
 
@@ -41,40 +21,30 @@ describe("auth login/register flows", () => {
     expect(student?.id).toBe("20210001");
   });
 
-  it("fails login with wrong student name", () => {
-    registerAccount("20210001", "Nguyễn Văn An");
+  it("logs in other students from student.json", () => {
+    const result = loginAccount("20210042", "Trần Minh Đức");
+    expect(result.ok).toBe(true);
+    expect(getCurrentStudent()?.id).toBe("20210042");
+  });
 
+  it("fails login with wrong student name", () => {
     const result = loginAccount("20210001", "wrong-name");
     expect(result.ok).toBe(false);
     expect(result.message).toMatch(/Họ tên không khớp/i);
   });
 
   it("allows register/login with non-accented name input", () => {
-    const registerResult = registerAccount("20210001", "Nguyen Van An");
-    expect(registerResult.ok).toBe(true);
-
     const loginResult = loginAccount("20210001", "Nguyen Van An");
     expect(loginResult.ok).toBe(true);
   });
 
-  it("supports legacy account records created with password format", () => {
-    window.localStorage.setItem(
-      "vinagent.accounts",
-      JSON.stringify([
-        {
-          studentId: "20210001",
-          password: "old-secret",
-          createdAt: new Date().toISOString(),
-        },
-      ]),
-    );
-
-    const loginResult = loginAccount("20210001", "Nguyễn Văn An");
-    expect(loginResult.ok).toBe(true);
+  it("fails login with unknown student id", () => {
+    const result = loginAccount("unknown-id", "Nguyễn Văn An");
+    expect(result.ok).toBe(false);
+    expect(result.message).toMatch(/không tồn tại/i);
   });
 
   it("verifies current logged-in student against source data", () => {
-    registerAccount("20210001", "Nguyễn Văn An");
     loginAccount("20210001", "Nguyễn Văn An");
 
     const result = verifyCurrentStudent();
@@ -82,7 +52,6 @@ describe("auth login/register flows", () => {
   });
 
   it("clears session on logout", () => {
-    registerAccount("20210001", "Nguyễn Văn An");
     loginAccount("20210001", "Nguyễn Văn An");
 
     logoutAccount();
