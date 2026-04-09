@@ -34,7 +34,7 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
-      className={`${montserrat.variable} ${jetbrainsMono.variable} dark h-full`}
+      className={`${montserrat.variable} ${jetbrainsMono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground antialiased">
         <TooltipProvider>

@@ -31,7 +31,7 @@ export default function Home() {
     <div className="flex min-h-[calc(100vh-1px)] flex-col items-center justify-center px-4 py-12">
       <FadeIn>
         <div className="flex flex-col items-center text-center">
-          <div className="flex size-10 items-center justify-center rounded-lg bg-foreground text-background text-sm font-bold mb-4">
+          <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold mb-4">
             VA
           </div>
           <h1 className="text-2xl font-semibold tracking-tight leading-tight">
@@ -47,10 +47,10 @@ export default function Home() {
       <Stagger className="mt-8 grid w-full max-w-xl gap-3 md:grid-cols-3">
         {STEPS.map((s) => (
           <StaggerItem key={s.step}>
-            <Card className="border-border/50 bg-card hover:border-border transition-colors">
+            <Card className="border-border/50 bg-blue-50 hover:border-border transition-colors">
               <CardContent className="flex flex-col items-center p-4 text-center">
-                <div className="flex size-9 items-center justify-center rounded-md bg-secondary text-muted-foreground">
-                  <s.icon className="size-4" />
+                <div className="flex size-9 items-center justify-center rounded-md" style={{ backgroundColor: '#134D8B' }}>
+                  <s.icon className="size-4 text-white" />
                 </div>
                 <span className="mt-3 flex size-5 items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-background">
                   {s.step}

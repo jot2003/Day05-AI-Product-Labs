@@ -158,6 +158,7 @@ Giả định: ~3,000 sinh viên, 2 kỳ/năm, hiện mất ~3 giờ/sinh viên/
 - **Đặng Đinh Tú Anh (2A202600019) — Team Lead & AI Core**
   - Quản lý backlog, viết spec, thiết kế prompt/LangGraph, triển khai confidence scoring.
   - Phụ trách cải tiến #5 Hesitation Signals.
+  - Light-mode
 
 - **Quách Gia Được (2A202600423) — Backend Engineer**
   - Xây dựng DB mock lớp học, CSP algorithm, API đăng ký + prerequisite validator, TTL cache.
