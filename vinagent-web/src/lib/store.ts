@@ -23,7 +23,9 @@ export type CourseSlot = {
   room?: string;
 };
 
-interface BKAgentState {
+export type RegisterStatus = "idle" | "loading" | "success" | "failed";
+
+export interface BKAgentState {
   prompt: string;
   flow: FlowState;
   selectedPlan: "A" | "B" | null;
@@ -42,6 +44,12 @@ interface BKAgentState {
   planBCourses: CourseSlot[];
   chatHistory: { role: "user" | "model"; text: string }[];
 
+  advisorBriefOpen: boolean;
+  editPlanOpen: boolean;
+  registerDialogOpen: boolean;
+  groupInviteOpen: boolean;
+  registerStatus: RegisterStatus;
+
   setPrompt: (prompt: string) => void;
   setToast: (toast: { title: string; message: string } | null) => void;
   setCurrentView: (view: "calendar" | "list") => void;
@@ -53,6 +61,13 @@ interface BKAgentState {
   toggleAutoAction: () => void;
   clarify: (choice: "avoidMorning" | "keepGroup") => void;
   confidenceLevel: () => ConfidenceLevel;
+  openEditPlan: () => void;
+  closeEditPlan: () => void;
+  openRegisterDialog: () => void;
+  closeRegisterDialog: () => void;
+  openGroupInvite: () => void;
+  closeGroupInvite: () => void;
+  setRegisterStatus: (status: RegisterStatus) => void;
 }
 
 let msgCounter = 0;
@@ -92,6 +107,11 @@ export const useBKAgent = create<BKAgentState>((set, get) => ({
   planACourses: [],
   planBCourses: [],
   chatHistory: [],
+  advisorBriefOpen: false,
+  editPlanOpen: false,
+  registerDialogOpen: false,
+  groupInviteOpen: false,
+  registerStatus: "idle",
 
   setPrompt: (prompt) => set({ prompt }),
   setToast: (toast) => set({ toast }),
@@ -215,6 +235,7 @@ export const useBKAgent = create<BKAgentState>((set, get) => ({
     set((s) => ({
       messages: [...s.messages, msg],
       flow: "escalated",
+      advisorBriefOpen: true,
       toast: { title: "Đã chuyển cố vấn học vụ", message: "Advisor Brief đã tạo kèm bối cảnh phiên." },
     }));
   },
@@ -251,4 +272,12 @@ export const useBKAgent = create<BKAgentState>((set, get) => ({
     if (flow === "failure") return "medium";
     return "high";
   },
+
+  openEditPlan: () => set({ editPlanOpen: true }),
+  closeEditPlan: () => set({ editPlanOpen: false }),
+  openRegisterDialog: () => set({ registerDialogOpen: true }),
+  closeRegisterDialog: () => set({ registerDialogOpen: false, registerStatus: "idle" }),
+  openGroupInvite: () => set({ groupInviteOpen: true }),
+  closeGroupInvite: () => set({ groupInviteOpen: false }),
+  setRegisterStatus: (status) => set({ registerStatus: status }),
 }));

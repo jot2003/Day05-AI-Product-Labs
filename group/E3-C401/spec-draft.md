@@ -18,12 +18,14 @@
 
 BKAgent là hệ thống Agentic AI đóng vai trò cố vấn học vụ cá nhân cho sinh viên Đại học Bách khoa Hà Nội (HUST), cho phép lên kế hoạch đăng ký tín chỉ qua ngôn ngữ tự nhiên, tự kiểm tra điều kiện tiên quyết, phát hiện xung đột lịch và đề xuất phương án tối ưu.
 
-Phiên bản v2.0 tập trung 5 cải tiến chính:
+Phiên bản v2.0 tập trung 7 cải tiến chính:
 1. Social Learning Flywheel
 2. Scenario Planning (Plan A + Plan B)
 3. Advisor Brief tự động khi cần escalate sang cố vấn
 4. Demand Forecasting cho phòng đào tạo
 5. Hesitation Signals để học từ hành vi do dự
+6. Đăng ký đồng bộ (Sync Registration): hỗ trợ sinh viên gửi lệnh đăng ký thẳng từ giao diện
+7. Đăng ký nhóm (Group Registration): sinh viên gửi lời mời đăng ký cùng nhóm bạn, hệ thống tìm slot chung
 
 ---
 
@@ -92,6 +94,18 @@ Có. Dữ liệu hành vi đăng ký môn theo ngành tại HUST là dữ liệu
 - UI: Reasoning panel + Human Escalation button.
 - Outcome: Khôi phục niềm tin bằng minh bạch.
 
+### Path 6 — Đăng ký đồng bộ (Sync Registration)
+- Trigger: Sinh viên xác nhận Plan A hoặc B (confidence ≥ 80).
+- AI action: Chuẩn bị danh sách môn + slot tối ưu, xác nhận lần cuối trước khi gửi.
+- UI: Dialog xác nhận → progress animation từng môn → tổng kết "Đã đăng ký X/Y môn".
+- Outcome: Tiết kiệm 30–60 phút thao tác thủ công trên dk-sis; giảm sai sót nhập tay.
+
+### Path 7 — Đăng ký nhóm (Group Registration)
+- Trigger: Sinh viên muốn học cùng nhóm bạn (preferGroupFriends = true).
+- AI action: Nhận danh sách bạn → tìm slot không xung đột cho cả nhóm → generate plan có overlapping tối đa.
+- UI: Sheet "Mời bạn đăng ký cùng" → chọn bạn từ groupFriends → gửi lời mời → re-generate lịch chung.
+- Outcome: Tăng tỷ lệ giữ nhóm học cùng lớp, học tập hiệu quả hơn.
+
 ---
 
 ## 3) Năm cải tiến đột phá (v2.0)
@@ -101,6 +115,8 @@ Có. Dữ liệu hành vi đăng ký môn theo ngành tại HUST là dữ liệu
 3. **Advisor Brief:** tự tóm tắt bối cảnh cho cố vấn khi escalate.
 4. **Demand Forecasting:** dự báo nhu cầu mở lớp từ draft sessions, hỗ trợ phòng đào tạo lên kế hoạch.
 5. **Hesitation Signals:** học từ hành vi do dự, không chỉ từ like/dislike.
+6. **Sync Registration:** sau khi xác nhận plan, BKAgent chuẩn bị và gửi lệnh đăng ký thay mặt sinh viên, giảm sai sót thao tác thủ công trên dk-sis.
+7. **Group Registration:** sinh viên có thể mời bạn đăng ký cùng; hệ thống tự tìm slot chung tối ưu cho cả nhóm.
 
 ---
 
@@ -125,6 +141,8 @@ Có. Dữ liệu hành vi đăng ký môn theo ngành tại HUST là dữ liệu
 | Ambiguous Intent Overconfidence | Confidence chưa đủ nhưng auto-run | Sai nguyện vọng | Threshold auto-action = 80%, confirm bắt buộc |
 | LT-BT-TN Mismatch | Không ghép đúng lớp lý thuyết + bài tập + thí nghiệm | Lịch xung đột, thiếu thành phần | Ràng buộc cứng trong CSP: cùng nhóm LT-BT-TN |
 | Mã môn khóa cũ/mới | Sinh viên khóa cũ đăng ký mã môn khóa mới | Không tìm thấy môn | Mapping table mã môn theo khóa + cảnh báo |
+| dk-sis Timeout | Hệ thống quá tải khi gửi đăng ký hàng loạt | Đăng ký thất bại giờ cao điểm | Retry với exponential backoff + thông báo rõ ràng |
+| Group Slot Conflict | Không tồn tại slot nào chung cho cả nhóm | Phải tách nhóm | Gợi ý slot gần nhau nhất + thông báo tới từng thành viên |
 
 ---
 
@@ -147,6 +165,7 @@ Giả định: ~35,000 sinh viên, 2 kỳ/năm, hiện mất ~4 giờ/sinh viên
 - **Vấn đề:** Đăng ký tín chỉ tại HUST cực kỳ căng thẳng do dk-sis quá tải, môn đại cương hết chỗ nhanh, phải ghép lớp LT-BT-TN phức tạp.
 - **Giải pháp:** BKAgent v2.0 dùng Agentic workflow để đề xuất, xác nhận và chuẩn bị kế hoạch đăng ký tối ưu với Plan A + Plan B.
 - **Stack:** Gemini 2.5 Flash + LangGraph StateGraph + Mock SIS data + CSP + Next.js.
+- **Tính năng nổi bật:** Đăng ký đồng bộ (sync registration từ giao diện), Đăng ký nhóm (group invite + tìm slot chung).
 - **Trust & safety:** Confidence threshold, confirm bắt buộc, reasoning panel, Plan A/B, escalate + advisor brief.
 - **Metric gates:** Precision >85%, Edit <25%, TTR <10 phút.
 - **ROI realistic:** tiết kiệm ~75,600 giờ/năm cho sinh viên và giảm tải phòng đào tạo.
